@@ -49,13 +49,7 @@ display_column_numbers(CurrentCol, MaxCol) :-
     NextCol is CurrentCol + 1,
     display_column_numbers(NextCol, MaxCol).
 
-% Remaining predicates remain unchanged...
-
-create_empty_row(0, []).
-create_empty_row(Size, ['X' | Rest]) :-
-    NewSize is Size - 1,
-    create_empty_row(NewSize, Rest).
-
+% Updated create_board/2 to create a matrix with variables
 create_board(Size, Board) :-
     create_board(Size, 1, Board).
 
@@ -67,11 +61,13 @@ create_board(Size, RowNum, [Row | Rest]) :-
     create_board(NewSize, NextRowNum, Rest).
 
 create_empty_spaces(0, []).
-create_empty_spaces(Size, ['X' | Rest]) :-
+create_empty_spaces(Size, [Var | Rest]) :-
     NewSize is Size - 1,
-    create_empty_spaces(NewSize, Rest).
+    create_empty_spaces(NewSize, Rest),
+    Var = 'X'. 
 
 % Example of the initial game state for Trike with a 7x7 board.
 initial_state(Size, [Board, CurrentPlayer]) :-
     create_board(Size, Board),
     CurrentPlayer = white.
+
