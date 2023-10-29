@@ -17,9 +17,16 @@ display_board([], _, _).
 display_board([Row | Rest], MaxSize, RowNum) :-
     display_row_number(RowNum),
     display_row(Row, MaxSize),
-    nl,
-    NextRowNum is RowNum - 1, 
+    nl, % Newline between each row
+    display_separator(MaxSize),
+    NextRowNum is RowNum - 1,
     display_board(Rest, MaxSize, NextRowNum).
+
+display_separator(0) :- nl.
+display_separator(Size) :-
+    write(''), % Line between rows
+    NewSize is Size - 1,
+    display_separator(NewSize).
 
 display_row_number(RowNum) :-
     write(RowNum),
@@ -27,6 +34,7 @@ display_row_number(RowNum) :-
 
 display_row([], _).
 display_row([Cell | Rest], MaxSize) :-
+    write('| '),
     write(Cell),
     write(' '),
     display_row(Rest, MaxSize).
@@ -35,6 +43,7 @@ display_column_numbers(CurrentCol, MaxCol) :-
     CurrentCol > MaxCol,
     !.
 display_column_numbers(CurrentCol, MaxCol) :-
+    write('  '), % Added three spaces for better alignment
     write(CurrentCol),
     write(' '),
     NextCol is CurrentCol + 1,
