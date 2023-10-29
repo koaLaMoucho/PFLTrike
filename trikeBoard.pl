@@ -6,41 +6,44 @@ display_game([Board, CurrentPlayer]) :-
     write('Current Player: '), write(CurrentPlayer),
     nl.
 
-% Updated display_board/1 to center the triangular board
+% Updated display_board/1 to create a right-angled triangle with 90 degrees on the bottom left
 display_board(Board) :-
     length(Board, BoardSize),
-    MaxIndent is BoardSize - 1,
-    display_board(Board, 7, MaxIndent).
+    display_board(Board, BoardSize, BoardSize),
+    write('  '),
+    display_column_numbers(1, BoardSize).
 
 display_board([], _, _).
-display_board([Row | Rest], Indent, MaxIndent) :-
-    indent(Indent, MaxIndent),
-    display_row(Row),
+display_board([Row | Rest], MaxSize, RowNum) :-
+    display_row_number(RowNum),
+    display_row(Row, MaxSize),
     nl,
-    NewIndent is Indent - 1,
-    display_board(Rest, NewIndent, MaxIndent).
+    NextRowNum is RowNum - 1, 
+    display_board(Rest, MaxSize, NextRowNum).
 
-indent(0, _).
-indent(N, MaxIndent) :-
-    print_spaces(MaxIndent),
-    Next is N - 1,
-    indent(Next, MaxIndent).
+display_row_number(RowNum) :-
+    write(RowNum),
+    write(' ').
 
-print_spaces(0).
-print_spaces(N) :-
-    write(' '),
-    Next is N - 1,
-    print_spaces(Next).
-
-display_row([]) :- nl.
-display_row([Cell | Rest]) :-
+display_row([], _).
+display_row([Cell | Rest], MaxSize) :-
     write(Cell),
     write(' '),
-    display_row(Rest).
+    display_row(Rest, MaxSize).
 
+display_column_numbers(CurrentCol, MaxCol) :-
+    CurrentCol > MaxCol,
+    !.
+display_column_numbers(CurrentCol, MaxCol) :-
+    write(CurrentCol),
+    write(' '),
+    NextCol is CurrentCol + 1,
+    display_column_numbers(NextCol, MaxCol).
+
+% Remaining predicates remain unchanged...
 
 create_empty_row(0, []).
-create_empty_row(Size, ['empty' | Rest]) :-
+create_empty_row(Size, ['X' | Rest]) :-
     NewSize is Size - 1,
     create_empty_row(NewSize, Rest).
 
@@ -55,7 +58,7 @@ create_board(Size, RowNum, [Row | Rest]) :-
     create_board(NewSize, NextRowNum, Rest).
 
 create_empty_spaces(0, []).
-create_empty_spaces(Size, [empty | Rest]) :-
+create_empty_spaces(Size, ['X' | Rest]) :-
     NewSize is Size - 1,
     create_empty_spaces(NewSize, Rest).
 
@@ -63,4 +66,3 @@ create_empty_spaces(Size, [empty | Rest]) :-
 initial_state(Size, [Board, CurrentPlayer]) :-
     create_board(Size, Board),
     CurrentPlayer = white.
-
