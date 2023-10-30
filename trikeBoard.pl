@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Updated create_matrix/2 to create a matrix with variables
 create_matrix(Size, Matrix) :-
     create_matrix(Size, 1, Matrix).
@@ -22,9 +24,9 @@ row_of_vars(N, [Var | Rest]) :-
 update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
     % Keep track of the last row and last column
     last_move(LastRow, LastCol),
-    
+
     % Add move restrictions here
-    (valid_move(Row, Col, LastRow, LastCol) ; throw(error('Invalid move'))),
+    (valid_move(Row, Col, LastRow, LastCol, Matrix) ; throw(error('Invalid move'))),
     update_row(Matrix, Row, Col, NewValue, UpdatedMatrix),
 
     % Update the last row and last column
@@ -35,15 +37,20 @@ update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
 :- dynamic last_move/2.
 last_move(7, 1).
 
-valid_move(Row, Col, LastRow, LastCol) :-
+valid_move(Row, Col, LastRow, LastCol, Matrix) :-
     Row > 0,
     Col > 0,
     Row =< 7, % Adjust this based on your matrix size
     Col =< Row, % Adjust this based on your specific condition
     (Row =\= LastRow ; Col =\= LastCol), % Ensure that Row and Col are not both the same as LastRow and LastCol
     (Row =:= LastRow ; Col =:= LastCol ; % Diagonal moves are allowed
-     abs(Row - LastRow) =:= abs(Col - LastCol)). % Check for straight diagonal movement
+     abs(Row - LastRow) =:= abs(Col - LastCol)), % Check for straight diagonal movement
+    get_value(Matrix, Row, Col, Cell),
+    Cell == 'X'. % Check if the cell is empty
 
+get_value(Matrix, Row, Col, Value) :-
+    nth1(Row, Matrix, CurrentRow), % Get the specified row from the matrix
+    nth1(Col, CurrentRow, Value). % Get the value at the specified column in the row
 
 update_row([CurrentRow | Rest], 1, Col, NewValue, [UpdatedRow | Rest]) :-
     update_column(CurrentRow, Col, NewValue, UpdatedRow).
@@ -73,7 +80,7 @@ display_matrix(Matrix) :-
     write('  '),
     display_column_numbers(1, BoardSize),
     nl.
-    
+
 display_matrix([], _).
 display_matrix([Row | Rest], RowNum) :-
     display_row_number(RowNum),
@@ -81,7 +88,7 @@ display_matrix([Row | Rest], RowNum) :-
     nl,
     NextRowNum is RowNum + 1,
     display_matrix(Rest, NextRowNum).
-    
+
 display_column_numbers(CurrentCol, MaxCol) :-
     CurrentCol > MaxCol,
     !.
@@ -121,13 +128,16 @@ generate_range(L, H, [L | Rest]) :-
     generate_range(NextL, H, Rest).
 generate_range(H, H, [H]).
 
-% Generate a list of available moves
 available_moves(Matrix, AvailableMoves) :-
     last_move(LastRow, LastCol),
     length(Matrix, Size),
     generate_range(1, Size, Rows),
     generate_range(1, Size, Cols),
-    findall([Row, Col], (member(Row, Rows), member(Col, Cols), valid_move(Row, Col, LastRow, LastCol)), MoveList),
+    findall([Row, Col], (
+        member(Row, Rows),
+        member(Col, Cols),
+        valid_move(Row, Col, LastRow, LastCol, Matrix)
+    ), MoveList),
     sort(MoveList, AvailableMoves).
 
 % Example of how to use the update_matrix predicate with an infinite game loop
@@ -139,22 +149,22 @@ game_loop(Matrix, CurrentPlayer) :-
     display_game([Matrix, CurrentPlayer]), % Display the current game state
     display_last_move, % Display the last move
     nl,
-    
+
     % Generate and display a list of available moves
     available_moves(Matrix, AvailableMoves),
     format('Available Moves: ~w~n', [AvailableMoves]),
-    
+
     write('Enter the row to update: '),
     read(Row),
     write('Enter the column to update: '),
     read(Column),
-    
+
     catch(
         update_matrix(Matrix, Row, Column, 'O', UpdatedMatrix), % Update a value (using 'O' for demonstration)
         exception_handler,
         UpdatedMatrix = Matrix % If an error occurs, keep the matrix unchanged
     ),
-    
+
     switch_player(CurrentPlayer, NextPlayer),
     game_loop(UpdatedMatrix, NextPlayer).
 
