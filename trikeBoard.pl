@@ -1,73 +1,103 @@
+% Updated create_matrix/2 to create a matrix with variables
+create_matrix(Size, Matrix) :-
+    create_matrix(Size, 1, Matrix).
+
+create_matrix(Size, Size, [Row]) :-
+    row_of_vars(Size, Row).
+
+create_matrix(Size, N, [Row | Rest]) :-
+    N < Size,
+    row_of_vars(N, Row),
+    NextN is N + 1,
+    create_matrix(Size, NextN, Rest).
+
+row_of_vars(0, []).
+row_of_vars(N, [Var | Rest]) :-
+    N > 0,
+    NextN is N - 1,
+    row_of_vars(NextN, Rest),
+    Var = 'X'. % You can use any variable here
+
+% Update a value at a specific position in the matrix
+update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
+    update_row(Matrix, Row, Col, NewValue, UpdatedMatrix).
+
+update_row([CurrentRow | Rest], 1, Col, NewValue, [UpdatedRow | Rest]) :-
+    update_column(CurrentRow, Col, NewValue, UpdatedRow).
+update_row([CurrentRow | Rest], Row, Col, NewValue, [CurrentRow | UpdatedRest]) :-
+    Row > 1,
+    NextRow is Row - 1,
+    update_row(Rest, NextRow, Col, NewValue, UpdatedRest).
+
+update_column([_ | Rest], 1, NewValue, [NewValue | Rest]).
+update_column([Current | Rest], Col, NewValue, [Current | UpdatedRest]) :-
+    Col > 1,
+    NextCol is Col - 1,
+    update_column(Rest, NextCol, NewValue, UpdatedRest).
+
 % Example of a simple display function.
 display_game([Board, CurrentPlayer]) :-
     nl,
-    display_board(Board),
+    display_matrix(Board),
     nl,
     write('Current Player: '), write(CurrentPlayer),
     nl.
 
-% Updated display_board/1 to create a right-angled triangle with 90 degrees on the bottom left
-display_board(Board) :-
-    length(Board, BoardSize),
-    display_board(Board, BoardSize, BoardSize),
+display_matrix(Matrix) :-
+    length(Matrix, BoardSize),
+    display_matrix(Matrix, 1),
+    nl,
     write('  '),
-    display_column_numbers(1, BoardSize).
+    display_column_numbers(1, BoardSize),
+    nl.
+    
 
-display_board([], _, _).
-display_board([Row | Rest], MaxSize, RowNum) :-
+display_matrix([], _).
+display_matrix([Row | Rest], RowNum) :-
     display_row_number(RowNum),
-    display_row(Row, MaxSize),
-    nl, % Newline between each row
-    display_separator(MaxSize),
-    NextRowNum is RowNum - 1,
-    display_board(Rest, MaxSize, NextRowNum).
-
-display_separator(0) :- nl.
-display_separator(Size) :-
-    write(''), % Line between rows
-    NewSize is Size - 1,
-    display_separator(NewSize).
-
-display_row_number(RowNum) :-
-    write(RowNum),
-    write(' ').
-
-display_row([], _).
-display_row([Cell | Rest], MaxSize) :-
-    write('| '),
-    write(Cell),
-    write(' '),
-    display_row(Rest, MaxSize).
-
+    display_row(Row),
+    nl,
+    NextRowNum is RowNum + 1,
+    display_matrix(Rest, NextRowNum).
+    
 display_column_numbers(CurrentCol, MaxCol) :-
     CurrentCol > MaxCol,
     !.
 display_column_numbers(CurrentCol, MaxCol) :-
-    write('  '), % Added three spaces for better alignment
+    write('  '),
     write(CurrentCol),
     write(' '),
     NextCol is CurrentCol + 1,
     display_column_numbers(NextCol, MaxCol).
 
-% Updated create_board/2 to create a matrix with variables
-create_board(Size, Board) :-
-    create_board(Size, 1, Board).
+display_row_number(RowNum) :-
+    nl,
+    write(RowNum),
+    write(' ').
 
-create_board(0, _, []).
-create_board(Size, RowNum, [Row | Rest]) :-
-    create_empty_spaces(RowNum, Row),
-    NewSize is Size - 1,
-    NextRowNum is RowNum + 1,
-    create_board(NewSize, NextRowNum, Rest).
+display_row([]).
+display_row([Cell | Rest]) :-
+    write('| '),
+    write(Cell),
+    write(' '),
+    display_row(Rest).
 
-create_empty_spaces(0, []).
-create_empty_spaces(Size, [Var | Rest]) :-
-    NewSize is Size - 1,
-    create_empty_spaces(NewSize, Rest),
-    Var = 'X'. 
 
 % Example of the initial game state for Trike with a 7x7 board.
 initial_state(Size, [Board, CurrentPlayer]) :-
-    create_board(Size, Board),
+    create_matrix(Size, Board),
     CurrentPlayer = white.
 
+% Example of how to use the update_matrix predicate
+example_update :-
+    create_matrix(7, Matrix),
+    display_game([Matrix, white]), % Display the initial game state
+    nl,
+    write('Enter the row to update'),
+    read(Row),
+    write('Enter the column to update'),
+    read(Column),
+    write('Enter the new value'),
+    read(NewValue),
+    update_matrix(Matrix, Row, Column, NewValue, UpdatedMatrix), % Update a value
+    display_game([UpdatedMatrix, black]). % Display the updated game state with black as the current player
