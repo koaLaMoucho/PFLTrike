@@ -27,30 +27,19 @@ update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
 
     % Add move restrictions here
     (valid_move(Row, Col, LastRow, LastCol, Matrix) ; throw(error('Invalid move'))),
+
+    
+    
     update_row(Matrix, Row, Col, NewValue, UpdatedMatrix),
 
-    % Update the last row and last column
+    
     retractall(last_move(_, _)),
     asserta(last_move(Row, Col)).
 
-% Define the initial last move
-:- dynamic last_move/2.
-last_move(7, 1).
 
-valid_move(Row, Col, LastRow, LastCol, Matrix) :-
-    Row > 0,
-    Col > 0,
-    Row =< 7, % Adjust this based on your matrix size
-    Col =< Row, % Adjust this based on your specific condition
-    (Row =\= LastRow ; Col =\= LastCol), % Ensure that Row and Col are not both the same as LastRow and LastCol
-    (Row =:= LastRow ; Col =:= LastCol ; % Diagonal moves are allowed
-     abs(Row - LastRow) =:= abs(Col - LastCol)), % Check for straight diagonal movement
-    get_value(Matrix, Row, Col, Cell),
-    Cell == 'X'. % Check if the cell is empty
+current_player_symbol(white, 'W').
+current_player_symbol(black, 'B').
 
-get_value(Matrix, Row, Col, Value) :-
-    nth1(Row, Matrix, CurrentRow), % Get the specified row from the matrix
-    nth1(Col, CurrentRow, Value). % Get the value at the specified column in the row
 
 update_row([CurrentRow | Rest], 1, Col, NewValue, [UpdatedRow | Rest]) :-
     update_column(CurrentRow, Col, NewValue, UpdatedRow).
@@ -140,10 +129,34 @@ available_moves(Matrix, AvailableMoves) :-
     ), MoveList),
     sort(MoveList, AvailableMoves).
 
-% Example of how to use the update_matrix predicate with an infinite game loop
+
+
+valid_move(Row, Col, LastRow, LastCol, Matrix) :-
+    Row > 0,
+    Col > 0,
+    Row =< 7, % Adjust this based on your matrix size
+    Col =< Row, % Adjust this based on your specific condition
+    (Row =\= LastRow ; Col =\= LastCol), % Ensure that Row and Col are not both the same as LastRow and LastCol
+    (Row =:= LastRow ; Col =:= LastCol ; % Diagonal moves are allowed
+     abs(Row - LastRow) =:= abs(Col - LastCol)), % Check for straight diagonal movement
+    get_value(Matrix, Row, Col, Cell),
+    Cell == 'X'.
+
+get_value(Matrix, Row, Col, Value) :-
+    nth1(Row, Matrix, CurrentRow), % Get the specified row from the matrix
+    nth1(Col, CurrentRow, Value). % Get the value at the specified column in the row
+
+switch_player(white, black).
+switch_player(black, white).
+
 game_loop :-
     create_matrix(7, Matrix),
-    game_loop(Matrix, white).
+    initial_last_move(InitialRow, InitialCol),
+    update_matrix(Matrix, InitialRow, InitialCol, 'B', UpdatedMatrix),
+    game_loop(UpdatedMatrix, white).
+
+% Predicate to get the initial last move
+initial_last_move(7, 1).
 
 game_loop(Matrix, CurrentPlayer) :-
     display_game([Matrix, CurrentPlayer]), % Display the current game state
@@ -159,18 +172,15 @@ game_loop(Matrix, CurrentPlayer) :-
     write('Enter the column to update: '),
     read(Column),
 
-    catch(
-        update_matrix(Matrix, Row, Column, 'O', UpdatedMatrix), % Update a value (using 'O' for demonstration)
-        exception_handler,
-        UpdatedMatrix = Matrix % If an error occurs, keep the matrix unchanged
-    ),
+    current_player_symbol(CurrentPlayer, Symbol),
+    update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
 
     switch_player(CurrentPlayer, NextPlayer),
     game_loop(UpdatedMatrix, NextPlayer).
 
-% Predicate to switch players (white to black, black to white)
-switch_player(white, black).
-switch_player(black, white).
+
+
+
 
 % Exception handling predicate
 exception_handler(Reason) :-
