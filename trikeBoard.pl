@@ -39,9 +39,11 @@ valid_move(Row, Col, LastRow, LastCol) :-
     Row > 0,
     Col > 0,
     Row =< 7, % Adjust this based on your matrix size
-    Col =< Row, % Adjust this based on your matrix size
-    (Row =\= LastRow ; Col =\= LastCol),
-    (Row =:= LastRow ; Col =:= LastCol).
+    Col =< Row, % Adjust this based on your specific condition
+    (Row =\= LastRow ; Col =\= LastCol), % Ensure that Row and Col are not both the same as LastRow and LastCol
+    (Row =:= LastRow ; Col =:= LastCol ; % Diagonal moves are allowed
+     abs(Row - LastRow) =:= abs(Col - LastCol)). % Check for straight diagonal movement
+
 
 update_row([CurrentRow | Rest], 1, Col, NewValue, [UpdatedRow | Rest]) :-
     update_column(CurrentRow, Col, NewValue, UpdatedRow).
@@ -125,7 +127,10 @@ available_moves(Matrix, AvailableMoves) :-
     length(Matrix, Size),
     generate_range(1, Size, Rows),
     generate_range(1, Size, Cols),
-    findall([Row, Col], (member(Row, Rows), member(Col, Cols), valid_move(Row, Col, LastRow, LastCol)), AvailableMoves).
+    findall([Row, Col], (member(Row, Rows), member(Col, Cols), valid_move(Row, Col, LastRow, LastCol)), MoveList),
+    sort(MoveList, AvailableMoves).
+
+
 
 
 % Example of how to use the update_matrix predicate
