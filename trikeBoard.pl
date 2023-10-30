@@ -28,18 +28,15 @@ update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
     % Add move restrictions here
     (valid_move(Row, Col, LastRow, LastCol, Matrix) ; throw(error('Invalid move'))),
 
-    
-    
     update_row(Matrix, Row, Col, NewValue, UpdatedMatrix),
 
-    
+    % Update the last row and last column
     retractall(last_move(_, _)),
     asserta(last_move(Row, Col)).
 
 
 current_player_symbol(white, 'W').
 current_player_symbol(black, 'B').
-
 
 update_row([CurrentRow | Rest], 1, Col, NewValue, [UpdatedRow | Rest]) :-
     update_column(CurrentRow, Col, NewValue, UpdatedRow).
@@ -129,7 +126,9 @@ available_moves(Matrix, AvailableMoves) :-
     ), MoveList),
     sort(MoveList, AvailableMoves).
 
-
+% Define the initial last move
+:- dynamic last_move/2.
+last_move(7, 1).
 
 valid_move(Row, Col, LastRow, LastCol, Matrix) :-
     Row > 0,
@@ -146,23 +145,16 @@ get_value(Matrix, Row, Col, Value) :-
     nth1(Row, Matrix, CurrentRow), % Get the specified row from the matrix
     nth1(Col, CurrentRow, Value). % Get the value at the specified column in the row
 
+% Predicate to switch players (white to black, black to white)
 switch_player(white, black).
 switch_player(black, white).
-
-game_loop :-
-    create_matrix(7, Matrix),
-    write('Black, enter the row for the initial move: '),
-    read(BlackRow),
-    write('Enter the column for the initial move: '),
-    read(BlackColumn),
-
-    
-    update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
-
-    game_loop(UpdatedMatrix, white).
+switch_player(_, ''). % Add default case for other players
 
 
-game_loop(Matrix, CurrentPlayer) :-
+
+
+
+make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     display_game([Matrix, CurrentPlayer]), % Display the current game state
     display_last_move, % Display the last move
     nl,
@@ -179,13 +171,25 @@ game_loop(Matrix, CurrentPlayer) :-
     current_player_symbol(CurrentPlayer, Symbol),
     update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
 
-    switch_player(CurrentPlayer, NextPlayer),
+    switch_player(CurrentPlayer, NextPlayer).
+
+% Main game loop
+game_loop :-
+    create_matrix(7, Matrix),
+    initial_state(7, [Matrix, CurrentPlayer]),
+
+    % Prompt black player for initial move
+    
+    write('Black, enter the row for your initial move: '),
+    read(BlackRow),
+    write('Enter the column for your initial move: '),
+    read(BlackColumn),
+    update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
+
+    % Start the game loop
+    game_loop(UpdatedMatrix, white).
+
+
+game_loop(Matrix, CurrentPlayer) :-
+    make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer),
     game_loop(UpdatedMatrix, NextPlayer).
-
-
-
-
-
-% Exception handling predicate
-exception_handler(Reason) :-
-    nl, write('Error: '), write(Reason), nl.
