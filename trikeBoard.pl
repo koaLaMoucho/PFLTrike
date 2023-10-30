@@ -151,12 +151,16 @@ switch_player(black, white).
 
 game_loop :-
     create_matrix(7, Matrix),
-    initial_last_move(InitialRow, InitialCol),
-    update_matrix(Matrix, InitialRow, InitialCol, 'B', UpdatedMatrix),
+    write('Black, enter the row for the initial move: '),
+    read(BlackRow),
+    write('Enter the column for the initial move: '),
+    read(BlackColumn),
+
+    
+    update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
+
     game_loop(UpdatedMatrix, white).
 
-% Predicate to get the initial last move
-initial_last_move(7, 1).
 
 game_loop(Matrix, CurrentPlayer) :-
     display_game([Matrix, CurrentPlayer]), % Display the current game state
