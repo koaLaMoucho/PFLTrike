@@ -24,7 +24,7 @@ update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
     last_move(LastRow, LastCol),
     
     % Add move restrictions here
-    (valid_move(Row, Col, LastRow, LastCol) ; throw(error('Invalid move: Rows or columns must be the same.'))),
+    (valid_move(Row, Col, LastRow, LastCol) ; throw(error('Invalid move'))),
     update_row(Matrix, Row, Col, NewValue, UpdatedMatrix),
 
     % Update the last row and last column
@@ -130,13 +130,13 @@ available_moves(Matrix, AvailableMoves) :-
     findall([Row, Col], (member(Row, Rows), member(Col, Cols), valid_move(Row, Col, LastRow, LastCol)), MoveList),
     sort(MoveList, AvailableMoves).
 
-
-
-
-% Example of how to use the update_matrix predicate
-example_update :-
+% Example of how to use the update_matrix predicate with an infinite game loop
+game_loop :-
     create_matrix(7, Matrix),
-    display_game([Matrix, white]), % Display the initial game state
+    game_loop(Matrix, white).
+
+game_loop(Matrix, CurrentPlayer) :-
+    display_game([Matrix, CurrentPlayer]), % Display the current game state
     display_last_move, % Display the last move
     nl,
     
@@ -148,9 +148,20 @@ example_update :-
     read(Row),
     write('Enter the column to update: '),
     read(Column),
+    
     catch(
         update_matrix(Matrix, Row, Column, 'O', UpdatedMatrix), % Update a value (using 'O' for demonstration)
-        error(Reason, _),
-        (nl, write('Error: '), write(Reason), nl)
+        exception_handler,
+        UpdatedMatrix = Matrix % If an error occurs, keep the matrix unchanged
     ),
-    display_game([UpdatedMatrix, black]). % Display the updated game state with black as the current player
+    
+    switch_player(CurrentPlayer, NextPlayer),
+    game_loop(UpdatedMatrix, NextPlayer).
+
+% Predicate to switch players (white to black, black to white)
+switch_player(white, black).
+switch_player(black, white).
+
+% Exception handling predicate
+exception_handler(Reason) :-
+    nl, write('Error: '), write(Reason), nl.
