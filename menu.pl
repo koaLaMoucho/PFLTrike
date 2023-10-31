@@ -56,18 +56,14 @@ play_game_options :-
 % Handle options after choosing to play the game
 handle_play_game_option(1) :-
     % Person vs Person
-    example_update, % Call the example_update predicate
+    player_vs_player_game, % Call the example_update predicate
     nl.
 
 handle_play_game_option(2) :-
-    % Person vs Computer
-    initial_state(7, GameState),
-    display_game(GameState),
-    % Add logic for Person vs Computer here.
+    % Person vs Person
+    computer_vs_player_game, % Call the example_update predicate
     nl.
 handle_play_game_option(3) :-
-    % Computer vs Computer
-    initial_state(7, GameState),
-    display_game(GameState),
-    % Add logic for Computer vs Computer here.
+     % Person vs Person
+    computer_vs_computer_game, % Call the example_update predicate
     nl.

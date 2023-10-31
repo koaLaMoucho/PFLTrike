@@ -66,19 +66,29 @@ display_game([Board, CurrentPlayer]) :-
 
 display_matrix(Matrix) :-
     length(Matrix, BoardSize),
-    display_matrix(Matrix, 1),
+    display_matrix(Matrix, 1, BoardSize),
+    write('    ---------------------------'),
     nl,
-    write('  '),
+    write('   '),
     display_column_numbers(1, BoardSize),
     nl.
 
-display_matrix([], _).
-display_matrix([Row | Rest], RowNum) :-
+display_matrix([], _, _).
+display_matrix([Row | Rest], RowNum, BoardSize) :-
+    SpacesBefore is (BoardSize - RowNum) * 2,
     display_row_number(RowNum),
+    display_spaces(SpacesBefore),
     display_row(Row),
     nl,
     NextRowNum is RowNum + 1,
-    display_matrix(Rest, NextRowNum).
+    display_matrix(Rest, NextRowNum, BoardSize).
+
+display_spaces(0).
+display_spaces(N) :-
+    N > 0,
+    write(' '),
+    NextN is N - 1,
+    display_spaces(NextN).
 
 display_column_numbers(CurrentCol, MaxCol) :-
     CurrentCol > MaxCol,
@@ -93,11 +103,11 @@ display_column_numbers(CurrentCol, MaxCol) :-
 display_row_number(RowNum) :-
     nl,
     write(RowNum),
-    write(' ').
+    write(' |').
 
 display_row([]).
 display_row([Cell | Rest]) :-
-    write('| '),
+    write('  '),
     write(Cell),
     write(' '),
     display_row(Rest).
@@ -263,6 +273,8 @@ computer_vs_player_game_loop(Matrix, CurrentPlayer) :-
     ),
     
     computer_vs_player_game_loop(UpdatedMatrix, NextPlayer).
+
+
 
 % Main game loop for player vs player
 player_vs_player_game :-
