@@ -1,5 +1,7 @@
 :- use_module(library(lists)).
+:- use_module(library(random)).
 :- use_module(library(between)).
+:- use_module(library(system)).
 
 % Updated create_matrix/2 to create a matrix with variables
 create_matrix(Size, Matrix) :-
@@ -34,7 +36,6 @@ update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
     % Update the last row and last column
     retractall(last_move(_, _)),
     asserta(last_move(Row, Col)).
-
 
 current_player_symbol(white, 'W').
 current_player_symbol(black, 'B').
@@ -97,12 +98,12 @@ display_row([Cell | Rest]) :-
     write(Cell),
     write(' '),
     display_row(Rest).
-
+/*
 % Example of the initial game state for Trike with a 7x7 board.
 initial_state(Size, [Board, CurrentPlayer]) :-
     create_matrix(Size, Board),
     CurrentPlayer = white.
-
+*/
 % Display the last move
 display_last_move :-
     last_move(LastRow, LastCol),
@@ -216,7 +217,63 @@ get_value(Matrix, Row, Col, Value) :-
 % Predicate to switch players (white to black, black to white)
 switch_player(white, black).
 switch_player(black, white).
-switch_player(_, ''). % Add default case for other players
+
+
+computer_make_move(Matrix, UpdatedMatrix, NextPlayer) :-
+    display_game([Matrix, black]), % Display the current game state for the computer
+    display_last_move, % Display the last move
+    nl,
+
+    % Generate and display a list of available moves
+    available_moves(Matrix, AvailableMoves),
+    format('Available Moves: ~w~n', [AvailableMoves]),
+
+    % Choose a random move for the computer
+    random_member([Row, Column], AvailableMoves),
+    update_matrix(Matrix, Row, Column, 'B', UpdatedMatrix),
+
+    % Switch to the next player
+    switch_player(black, NextPlayer).
+
+random_initial_move(Row, Column) :-
+    between(1, 7, Row),
+    between(1, Row, Column).
+
+% Main game loop for computer vs player
+computer_vs_player_game :-
+    create_matrix(7, Matrix),
+    
+    random_initial_move(Row, Column),
+    update_matrix(Matrix, Row, Column, 'B', UpdatedMatrix),
+
+    % Start the game loop
+    computer_vs_player_game_loop(UpdatedMatrix, white).
+
+% Game loop for computer vs player
+computer_vs_player_game_loop(Matrix, CurrentPlayer) :-
+    (CurrentPlayer = black -> % 
+        computer_make_move(Matrix, UpdatedMatrix, NextPlayer),
+        write('Computer''s Turn'),
+        sleep(2)
+    ;
+        make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer)
+    ),
+    
+    computer_vs_player_game_loop(UpdatedMatrix, NextPlayer).
+
+% Main game loop for player vs player
+player_vs_player_game :-
+    create_matrix(7, Matrix),
+    
+    % Prompt black player for initial move
+    write('Black, enter the row for your initial move: '),
+    read(BlackRow),
+    write('Enter the column for your initial move: '),
+    read(BlackColumn),
+    update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
+
+    % Start the game loop
+    player_vs_player_game_loop(UpdatedMatrix, white).
 
 make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     display_game([Matrix, CurrentPlayer]), % Display the current game state
@@ -237,23 +294,31 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
 
     switch_player(CurrentPlayer, NextPlayer).
 
-% Main game loop
-game_loop :-
-    create_matrix(7, Matrix),
-    initial_state(7, [Matrix, CurrentPlayer]),
+% Game loop for player vs player
+player_vs_player_game_loop(Matrix, CurrentPlayer) :-
+    make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer),
+    player_vs_player_game_loop(UpdatedMatrix, NextPlayer).
 
-    % Prompt black player for initial move
+% Main game loop for computer vs computer
+computer_vs_computer_game :-
+    create_matrix(7, Matrix),
     
-    write('Black, enter the row for your initial move: '),
-    read(BlackRow),
-    write('Enter the column for your initial move: '),
-    read(BlackColumn),
-    update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
+    random_initial_move(Row, Column),
+    update_matrix(Matrix, Row, Column, 'B', UpdatedMatrix),
 
     % Start the game loop
-    game_loop(UpdatedMatrix, white).
+    computer_vs_computer_game_loop(UpdatedMatrix, white).
 
-
-game_loop(Matrix, CurrentPlayer) :-
-    make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer),
-    game_loop(UpdatedMatrix, NextPlayer).
+% Game loop for computer vs computer
+computer_vs_computer_game_loop(Matrix, CurrentPlayer) :-
+    (CurrentPlayer = black -> % 
+        computer_make_move(Matrix, UpdatedMatrix, NextPlayer),
+        write('Black Computer''s Turn'),
+        sleep(2)
+    ;
+        computer_make_move(Matrix, UpdatedMatrix, NextPlayer),
+        write('White Computer''s Turn'),
+        sleep(2)
+    ),
+    
+    computer_vs_computer_game_loop(UpdatedMatrix, NextPlayer).
