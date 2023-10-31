@@ -2,6 +2,9 @@
 :- use_module(library(random)).
 :- use_module(library(between)).
 :- use_module(library(system)).
+:- use_module(library(not)).
+
+is_empty_list([]). % to easily see if a list is empty
 
 % Updated create_matrix/2 to create a matrix with variables
 create_matrix(Size, Matrix) :-
@@ -29,7 +32,7 @@ update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
     last_move(LastRow, LastCol),
 
     % Add move restrictions here
-    (valid_move(Row, Col, LastRow, LastCol, Matrix) ; throw(error('Invalid move'))),
+    valid_move(Row, Col, LastRow, LastCol, Matrix),
 
     update_row(Matrix, Row, Col, NewValue, UpdatedMatrix),
 
@@ -282,6 +285,7 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
 
     % Generate and display a list of available moves
     available_moves(Matrix, AvailableMoves),
+    \+ is_empty_list(AvailableMoves),
     format('Available Moves: ~w~n', [AvailableMoves]),
 
     write('Enter the row to update: '),
@@ -295,9 +299,91 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     switch_player(CurrentPlayer, NextPlayer).
 
 % Game loop for player vs player
-player_vs_player_game_loop(Matrix, CurrentPlayer) :-
+/*player_vs_player_game_loop(Matrix, CurrentPlayer) :-
     make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer),
     player_vs_player_game_loop(UpdatedMatrix, NextPlayer).
+*/
+
+player_vs_player_game_loop(Matrix, CurrentPlayer) :-
+    (   make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) ->
+        player_vs_player_game_loop(UpdatedMatrix, NextPlayer)  % If make_move succeeds, recurse with updated state.
+    ;   game_over(Matrix, CurrentPlayer)  % If make_move fails, end the game.
+    ).
+
+/*game_over(Matrix, Player) :-
+    % Do something with the final game state, like printing the board or announcing the winner.
+    display_board(Matrix),
+    format('Player ~w cannot make a move. Game over.', [Player]),
+    !, fail.  % Cut and fail to prevent backtracking.
+*/
+
+% Define the predicate to call when the game is over.
+game_over(Matrix, Player) :-
+    last_move(Row, Column),
+    % Calculate scores for both players.
+    score(Matrix, black, Row-Column, ScoreBlack),
+    score(Matrix, white, Row-Column, ScoreWhite),
+    get_value(Matrix, Row, Column, Value),
+    (Value == 'B' -> ScoreBlack1 = ScoreBlack, ScoreWhite1 is ScoreWhite - 1
+                ; ScoreBlack1 is ScoreBlack - 1, ScoreWhite1 = ScoreWhite),
+    % Do something with the scores, like print them.
+    format('Game over. ~nBlack score: ~w ~nWhite score: ~w~n', [ScoreBlack1, ScoreWhite1]),
+    % Determine the winner.
+    (ScoreBlack1 > ScoreWhite1 -> format('Black wins!~n', []);
+    ScoreWhite1 > ScoreBlack1 -> format('White wins!~n', []);
+    format('It is a tie!~n', [])),
+    !, fail. % Cut and fail to prevent backtracking.
+
+% Define the score predicate.
+% score(Matrix, PlayerColor, PawnPosition, Score)
+score(Matrix, Color, PawnPosition, Score) :-
+    % Start DFS from the pawns final position to count the number of adjacent checkers.
+    dfs(Matrix, Color, [PawnPosition], [], 0, Score).
+
+% Define the DFS predicate.
+% dfs(Matrix, Color, Stack, Visited, CurrentScore, FinalScore)
+dfs(_, _, [], Visited, Score, Score) :- length(Visited, Score).
+dfs(Matrix, Color, [Pos|Rest], Visited, CurrentScore, Score) :-
+    % Get all adjacent positions to Pos that have not been visited and contain Colors checker.
+    findall(AdjPos, (adjacent(Pos, AdjPos), valid_checker(Matrix, AdjPos, Color), \+ member(AdjPos, Visited)), AdjacentPositions),
+    % Merge new positions with the current stack while maintaining DFS order.
+    append(AdjacentPositions, Rest, NewStack),
+    % Mark the current position as visited.
+    NewVisited = [Pos|Visited],
+    % Continue DFS with the new stack and visited list.
+    CurrentScore1 is CurrentScore + 1,
+    dfs(Matrix, Color, NewStack, NewVisited, CurrentScore1, Score).
+
+% Predicate to find adjacent positions on the board.
+% adjacent(Position, AdjacentPosition)
+adjacent(Row-Col, AdjRow-AdjCol) :-
+    adjacent_hex(Row, Col, AdjRow, AdjCol).
+
+% Horizontal adjacent positions (same row)
+adjacent_hex(Row, Col, Row, AdjCol) :- AdjCol is Col - 1.
+adjacent_hex(Row, Col, Row, AdjCol) :- AdjCol is Col + 1.
+
+% Vertical adjacent positions (same column)
+adjacent_hex(Row, Col, AdjRow, Col) :- AdjRow is Row - 1.
+adjacent_hex(Row, Col, AdjRow, Col) :- AdjRow is Row + 1.
+
+% Diagonal adjacent positions
+adjacent_hex(Row, Col, AdjRow, AdjCol) :-
+    AdjRow is Row - 1, AdjCol is Col - 1.
+adjacent_hex(Row, Col, AdjRow, AdjCol) :-
+    AdjRow is Row + 1, AdjCol is Col + 1.
+
+
+% Predicate to check if theres a valid checker at a position for the given color.
+% valid_checker(Matrix, Position, Color)
+valid_checker(Matrix, Row-Col, Color) :-
+    get_value(Matrix, Row, Col, Value),
+    Value == 'B',
+    Color == black.
+valid_checker(Matrix, Row-Col, Color) :-
+    get_value(Matrix, Row, Col, Value),
+    Value == 'W',
+    Color == white.
 
 % Main game loop for computer vs computer
 computer_vs_computer_game :-
