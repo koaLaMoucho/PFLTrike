@@ -1,4 +1,5 @@
 :- use_module(library(lists)).
+:- use_module(library(between)).
 
 % Updated create_matrix/2 to create a matrix with variables
 create_matrix(Size, Matrix) :-
@@ -130,6 +131,7 @@ available_moves(Matrix, AvailableMoves) :-
 :- dynamic last_move/2.
 last_move(7, 1).
 
+/*
 valid_move(Row, Col, LastRow, LastCol, Matrix) :-
     Row > 0,
     Col > 0,
@@ -140,6 +142,72 @@ valid_move(Row, Col, LastRow, LastCol, Matrix) :-
      abs(Row - LastRow) =:= abs(Col - LastCol)), % Check for straight diagonal movement
     get_value(Matrix, Row, Col, Cell),
     Cell == 'X'.
+*/
+
+% Check if the move from LastRow/LastCol to Row/Col is valid on the Matrix
+valid_move(Row, Col, LastRow, LastCol, Matrix) :-
+    within_board(Row, Col, Matrix),                  % The destination is within the bounds of the board.
+    \+ occupied(Row, Col, Matrix),                   % The destination is not occupied.
+    is_straight_line(LastRow, LastCol, Row, Col),    % The move is in a straight line.
+    path_clear(LastRow, LastCol, Row, Col, Matrix).  % The path from the pawns current to the destination is clear.
+
+% Check if a position is within the bounds of the board.
+within_board(Row, Col, Matrix) :-
+    length(Matrix, NumRows),
+    nth1(Row, Matrix, RowList),
+    length(RowList, NumCols),
+    between(1, NumRows, Row),
+    between(1, NumCols, Col).
+
+% Check if a position is occupied.
+occupied(Row, Col, Matrix) :-
+    nth1(Row, Matrix, RowList),
+    nth1(Col, RowList, Cell),
+    Cell \= 'X'. % assuming 'X' is the representation of an unoccupied cell
+
+% Check if a move is in a straight line (this predicate should be implemented based on the games geometry).
+is_straight_line(Row, _LastCol, Row, _Col). % Vertical movement
+is_straight_line(_LastRow, Col, _Row, Col). % Horizontal movement
+is_straight_line(LastRow, LastCol, Row, Col) :- % Diagonal movement
+    (Row - LastRow) =:= (Col - LastCol).
+
+% Check if the path is clear of checkers.
+/*
+path_clear(LastRow, LastCol, Row, Col, Matrix) :-
+    % This predicate needs to verify each point on the path between the pawns current position
+    % and the destination to make sure none of them are occupied.
+    % The implementation depends on the board layout and needs to handle different directions.
+*/
+
+% Base case: If the last position is the same as the new position, the path is clear.
+path_clear(Row, Col, Row, Col, _Matrix).
+
+% Recursive case: Check if the path is clear by advancing one step towards the destination and then calling path_clear recursively.
+path_clear(LastRow, LastCol, Row, Col, Matrix) :-
+    next_step(LastRow, LastCol, Row, Col, NextRow, NextCol),  % Determine the next step
+    \+ occupied(NextRow, NextCol, Matrix),
+    path_clear(NextRow, NextCol, Row, Col, Matrix).  % Recurse to check the rest of the path
+
+% Helper predicate to determine the next step in the path
+% Vertical movement
+next_step(LastRow, LastCol, Row, Col, NextRow, LastCol) :-
+    LastCol == Col,  % Vertical movement, column stays the same
+    LastRow \= Row,  % Ensure we are not already at the destination row
+    (LastRow < Row -> NextRow is LastRow + 1; NextRow is LastRow - 1).
+
+% Horizontal movement
+next_step(LastRow, LastCol, Row, Col, LastRow, NextCol) :-
+    LastRow == Row,  % Horizontal movement, row stays the same
+    LastCol \= Col,  % Ensure we are not already at the destination column
+    (LastCol < Col -> NextCol is LastCol + 1; NextCol is LastCol - 1).
+
+% Diagonal movement
+next_step(LastRow, LastCol, Row, Col, NextRow, NextCol) :-
+    (Row - LastRow) =:= (Col - LastCol),  % Ensure its a diagonal move
+    LastRow \= Row,
+    LastCol \= Col,
+    (LastRow < Row -> NextRow is LastRow + 1; NextRow is LastRow - 1),
+    (LastCol < Col -> NextCol is LastCol + 1; NextCol is LastCol - 1).
 
 get_value(Matrix, Row, Col, Value) :-
     nth1(Row, Matrix, CurrentRow), % Get the specified row from the matrix
@@ -149,10 +217,6 @@ get_value(Matrix, Row, Col, Value) :-
 switch_player(white, black).
 switch_player(black, white).
 switch_player(_, ''). % Add default case for other players
-
-
-
-
 
 make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     display_game([Matrix, CurrentPlayer]), % Display the current game state
