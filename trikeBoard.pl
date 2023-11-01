@@ -235,27 +235,18 @@ computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     display_game([Matrix, CurrentPlayer]), % Display the current game state for the computer
     display_last_move, % Display the last move
     nl,
-    write('Computer''s Turn'), nl,
     % Generate and display a list of available moves
-    write('Available Moves: '), nl,
     available_moves(Matrix, AvailableMoves),
-    write(AvailableMoves), nl,
     \+ is_empty_list(AvailableMoves),
     format('Available Moves: ~w~n', [AvailableMoves]),
 
     % Choose a random move for the computer
-    write('Computer is choosing a move...'), nl,
     random_member([Row, Column], AvailableMoves),
-    write('Computer chose: '), nl,
     current_player_symbol(CurrentPlayer, Symbol),
-    write(Symbol), write(' '), write(Row), write(' '), write(Column), nl,
     update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
-    write('Computer made a move!'), nl,
 
     % Switch to the next player
-    write('Switching players...'), nl,
-    switch_player(CurrentPlayer, NextPlayer),
-    write('Switched players!'), nl.
+    switch_player(CurrentPlayer, NextPlayer).
 
 random_initial_move(Row, Column) :-
     between(1, 7, Row),
@@ -348,8 +339,9 @@ game_over(Matrix, Player) :-
     score(Matrix, black, Row-Column, ScoreBlack),
     score(Matrix, white, Row-Column, ScoreWhite),
     get_value(Matrix, Row, Column, Value),
-    (Value == 'B' -> ScoreBlack1 = ScoreBlack, ScoreWhite1 is ScoreWhite - 1
-                ; ScoreBlack1 is ScoreBlack - 1, ScoreWhite1 = ScoreWhite),
+    (Value == 'B' -> 
+    ScoreWhite1 is ScoreWhite - 1, ScoreBlack1 is ScoreBlack; 
+    ScoreWhite1 is ScoreWhite, ScoreBlack1 is ScoreBlack - 1),
     % Do something with the scores, like print them.
     format('Game over. ~nBlack score: ~w ~nWhite score: ~w~n', [ScoreBlack1, ScoreWhite1]),
     % Determine the winner.
@@ -361,22 +353,22 @@ game_over(Matrix, Player) :-
 % score(Matrix, PlayerColor, PawnPosition, Score)
 score(Matrix, Color, PawnPosition, Score) :-
     % Start DFS from the pawns final position to count the number of adjacent checkers.
-    dfs(Matrix, Color, [PawnPosition], [], 0, Score).
+    dfs(Matrix, Color, [PawnPosition], [], Score).
 
 % Define the DFS predicate.
-% dfs(Matrix, Color, Stack, Visited, CurrentScore, FinalScore)
-dfs(_, _, [], Visited, Score, Score) :- length(Visited, Score).
-dfs(Matrix, Color, [Pos|Rest], Visited, CurrentScore, Score) :-
+% dfs(Matrix, Color, Stack, Visited, Score)
+dfs(_, _, [], Visited, Score) :- Score is 0. % Base case: If the stack is empty, return 0.
+dfs(Matrix, Color, [Pos|Rest], Visited, Score) :-
     % Get all adjacent positions to Pos that have not been visited and contain Colors checker.
-    findall(AdjPos, (adjacent(Pos, AdjPos), valid_checker(Matrix, AdjPos, Color), \+ member(AdjPos, Visited)), AdjacentPositions),
+    findall(AdjPos, (adjacent(Pos, AdjPos), valid_checker(Matrix, AdjPos, Color), \+ member(AdjPos, Visited), \+ member(AdjPos, [Pos|Rest])), AdjacentPositions),
     % Merge new positions with the current stack while maintaining DFS order.
     append(AdjacentPositions, Rest, NewStack),
     % Mark the current position as visited.
     NewVisited = [Pos|Visited],
     % Continue DFS with the new stack and visited list.
-    CurrentScore1 is CurrentScore + 1,
-    dfs(Matrix, Color, NewStack, NewVisited, CurrentScore1, Score).
-
+    dfs(Matrix, Color, NewStack, NewVisited, Score1),
+    Score is Score1 + 1.
+    
 % Predicate to find adjacent positions on the board.
 % adjacent(Position, AdjacentPosition)
 adjacent(Row-Col, AdjRow-AdjCol) :-
