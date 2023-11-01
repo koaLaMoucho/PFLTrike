@@ -2,6 +2,7 @@
 :- use_module(library(random)).
 :- use_module(library(between)).
 :- use_module(library(system)).
+:- use_module(library(apply))
 
 is_empty_list([]). % to easily see if a list is empty
 
@@ -367,17 +368,100 @@ computer_vs_computer_game :-
 computer_vs_computer_game_loop(Matrix, CurrentPlayer) :-
     (CurrentPlayer = black -> % 
         (
-            computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->
+            computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->
             write('Black Computer''s Turn'),
             sleep(2),
             computer_vs_computer_game_loop(UpdatedMatrix, NextPlayer)
         ;   game_over(Matrix, CurrentPlayer), !
         )
     ;   (
-            computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->
+            computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->
             write('White Computer''s Turn'),
             sleep(2),
             computer_vs_computer_game_loop(UpdatedMatrix, NextPlayer)
         ;   game_over(Matrix, CurrentPlayer), !
         )
     ).
+
+
+computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
+    display_game([Matrix, CurrentPlayer]), % Display the current game state for the computer
+    display_last_move, % Display the last move
+    nl,
+    % Generate and display a list of available moves
+    available_moves(Matrix, AvailableMoves),
+    \+ is_empty_list(AvailableMoves),
+    format('Available Moves: ~w~n', [AvailableMoves]),
+
+    % Choose a greedy move for the computer
+    write('before greedy_move'), nl,
+    greedy_move(Matrix, CurrentPlayer, AvailableMoves, [Row, Column]),    
+    write('after greedy_move'), nl,
+    current_player_symbol(CurrentPlayer, Symbol),
+    update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
+
+    % Switch to the next player
+    switch_player(CurrentPlayer, NextPlayer).
+
+
+% Greedy move for a computer player
+% It selects the move that captures the most pieces (or achieves the best immediate outcome based on a heuristic)
+
+greedy_move(Matrix, CurrentPlayer, AvailableMoves, BestMove) :-
+    write('before greedy_move_helper1'), nl,
+    maplist(greedy_move_helper(Matrix, CurrentPlayer), AvailableMoves, MoveScores),
+    write(AvailableMoves), nl,
+    write(MoveScores), nl,
+    write('after greedy_move_helper1'), nl,
+    maplist(extract_score, MoveScores, ScoresList),
+    max_list(ScoresList, MaxScore),
+    write('max score: '), write(MaxScore), nl,
+    write('after max_list'), nl,
+    write('before findall'), nl,
+    findall(Move, (member(Score-Move, MoveScores), Score == MaxScore), BestMoves),
+    
+    write('after findall'), nl,
+    write('best moves:' ), write(BestMoves), nl,
+    write('before random_member'), nl,
+    maplist(pair_to_list, BestMoves, BestMoves1),
+    write('BestMoves1: '), write(BestMoves1), nl,
+    random_member(BestMove, BestMoves1),
+    write('BestMove: '), write(BestMove), nl.
+    
+% Greedy move helper predicate
+greedy_move_helper(Matrix, CurrentPlayer, [Row, Column], Score-Move) :-
+    Move = Row-Column,
+    current_player_symbol(CurrentPlayer, Symbol),
+    write('before update_matrix2'), nl,
+    update_matrix2(Matrix, Row, Column, Symbol, UpdatedMatrix),
+    write('after update_matrix2'), nl,
+    % Calculate scores for both players.
+    score(UpdatedMatrix, black, Row-Column, ScoreBlack),
+    score(UpdatedMatrix, white, Row-Column, ScoreWhite),
+    (CurrentPlayer == black -> Score is ScoreBlack - ScoreWhite; Score is ScoreWhite - ScoreBlack),
+    % score(UpdatedMatrix, CurrentPlayer, Row-Column, Score),
+    write('after score'), nl,
+    write('Score: '), write(Score), nl,
+    write('after write'), nl.
+
+% Second predicate to update matrix
+update_matrix2(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
+    % Add move restrictions here
+    valid_move(Row, Col, LastRow, LastCol, Matrix),
+
+    update_row(Matrix, Row, Col, NewValue, UpdatedMatrix).
+
+max_list([H|T], Max) :-
+    max_list(T, H, Max).
+
+max_list([], Max, Max).
+max_list([H|T], TempMax, Max) :-
+    H > TempMax,
+    !,
+    max_list(T, H, Max).
+max_list([_|T], TempMax, Max) :-
+    max_list(T, TempMax, Max).
+
+pair_to_list(Row-Col, [Row, Col]).
+list_to_pair([Row, Col], Row-Col).
+extract_score(Score-(Row-Column), Score).
