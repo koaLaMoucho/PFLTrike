@@ -144,19 +144,6 @@ available_moves(Matrix, AvailableMoves) :-
 :- dynamic last_move/2.
 last_move(7, 1).
 
-/*
-valid_move(Row, Col, LastRow, LastCol, Matrix) :-
-    Row > 0,
-    Col > 0,
-    Row =< 7, % Adjust this based on your matrix size
-    Col =< Row, % Adjust this based on your specific condition
-    (Row =\= LastRow ; Col =\= LastCol), % Ensure that Row and Col are not both the same as LastRow and LastCol
-    (Row =:= LastRow ; Col =:= LastCol ; % Diagonal moves are allowed
-     abs(Row - LastRow) =:= abs(Col - LastCol)), % Check for straight diagonal movement
-    get_value(Matrix, Row, Col, Cell),
-    Cell == 'X'.
-*/
-
 % Check if the move from LastRow/LastCol to Row/Col is valid on the Matrix
 valid_move(Row, Col, LastRow, LastCol, Matrix) :-
     within_board(Row, Col, Matrix),                  % The destination is within the bounds of the board.
@@ -185,12 +172,6 @@ is_straight_line(LastRow, LastCol, Row, Col) :- % Diagonal movement
     (Row - LastRow) =:= (Col - LastCol).
 
 % Check if the path is clear of checkers.
-/*
-path_clear(LastRow, LastCol, Row, Col, Matrix) :-
-    % This predicate needs to verify each point on the path between the pawns current position
-    % and the destination to make sure none of them are occupied.
-    % The implementation depends on the board layout and needs to handle different directions.
-*/
 
 % Base case: If the last position is the same as the new position, the path is clear.
 path_clear(Row, Col, Row, Col, _Matrix).
@@ -313,24 +294,11 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
 
     switch_player(CurrentPlayer, NextPlayer).
 
-% Game loop for player vs player
-/*player_vs_player_game_loop(Matrix, CurrentPlayer) :-
-    make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer),
-    player_vs_player_game_loop(UpdatedMatrix, NextPlayer).
-*/
-
 player_vs_player_game_loop(Matrix, CurrentPlayer) :-
     (   make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) ->
         player_vs_player_game_loop(UpdatedMatrix, NextPlayer)  % If make_move succeeds, recurse with updated state.
     ;   game_over(Matrix, CurrentPlayer), !  % If make_move fails, end the game.
     ).
-
-/*game_over(Matrix, Player) :-
-    % Do something with the final game state, like printing the board or announcing the winner.
-    display_board(Matrix),
-    format('Player ~w cannot make a move. Game over.', [Player]),
-    !, fail.  % Cut and fail to prevent backtracking.
-*/
 
 % Define the predicate to call when the game is over.
 game_over(Matrix, Player) :-
@@ -338,37 +306,20 @@ game_over(Matrix, Player) :-
     % Calculate scores for both players.
     score(Matrix, black, Row-Column, ScoreBlack),
     score(Matrix, white, Row-Column, ScoreWhite),
-    get_value(Matrix, Row, Column, Value),
-    (Value == 'B' -> 
-    ScoreWhite1 is ScoreWhite - 1, ScoreBlack1 is ScoreBlack; 
-    ScoreWhite1 is ScoreWhite, ScoreBlack1 is ScoreBlack - 1),
+
     % Do something with the scores, like print them.
-    format('Game over. ~nBlack score: ~w ~nWhite score: ~w~n', [ScoreBlack1, ScoreWhite1]),
+    format('Game over. ~nBlack score: ~w ~nWhite score: ~w~n', [ScoreBlack, ScoreWhite]),
     % Determine the winner.
-    (ScoreBlack1 > ScoreWhite1 -> format('Black wins!~n', []);
-    ScoreWhite1 > ScoreBlack1 -> format('White wins!~n', []);
+    (ScoreBlack > ScoreWhite -> format('Black wins!~n', []);
+    ScoreWhite > ScoreBlack -> format('White wins!~n', []);
     format('It is a tie!~n', [])).
 
 % Define the score predicate.
-% score(Matrix, PlayerColor, PawnPosition, Score)
-score(Matrix, Color, PawnPosition, Score) :-
-    % Start DFS from the pawns final position to count the number of adjacent checkers.
-    dfs(Matrix, Color, [PawnPosition], [], Score).
+% score(Matrix, PlayerColor, Pos, Score)
+score(Matrix, Color, Pos, Score) :-
+    findall(AdjPos, (adjacent(Pos, AdjPos), valid_checker(Matrix, AdjPos, Color)), AdjacentPositions), % Get all adjacent positions to Pos that contain Colors checker.
+    length(AdjacentPositions, Score). % The score is the number of adjacent positions.
 
-% Define the DFS predicate.
-% dfs(Matrix, Color, Stack, Visited, Score)
-dfs(_, _, [], Visited, Score) :- Score is 0. % Base case: If the stack is empty, return 0.
-dfs(Matrix, Color, [Pos|Rest], Visited, Score) :-
-    % Get all adjacent positions to Pos that have not been visited and contain Colors checker.
-    findall(AdjPos, (adjacent(Pos, AdjPos), valid_checker(Matrix, AdjPos, Color), \+ member(AdjPos, Visited), \+ member(AdjPos, [Pos|Rest])), AdjacentPositions),
-    % Merge new positions with the current stack while maintaining DFS order.
-    append(AdjacentPositions, Rest, NewStack),
-    % Mark the current position as visited.
-    NewVisited = [Pos|Visited],
-    % Continue DFS with the new stack and visited list.
-    dfs(Matrix, Color, NewStack, NewVisited, Score1),
-    Score is Score1 + 1.
-    
 % Predicate to find adjacent positions on the board.
 % adjacent(Position, AdjacentPosition)
 adjacent(Row-Col, AdjRow-AdjCol) :-
@@ -388,6 +339,8 @@ adjacent_hex(Row, Col, AdjRow, AdjCol) :-
 adjacent_hex(Row, Col, AdjRow, AdjCol) :-
     AdjRow is Row + 1, AdjCol is Col + 1.
 
+% Same position
+adjacent_hex(Row, Col, Row, Col).
 
 % Predicate to check if theres a valid checker at a position for the given color.
 % valid_checker(Matrix, Position, Color)
