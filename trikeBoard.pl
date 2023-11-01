@@ -231,8 +231,8 @@ switch_player(white, black).
 switch_player(black, white).
 
 
-computer_make_move(Matrix, UpdatedMatrix, NextPlayer) :-
-    display_game([Matrix, black]), % Display the current game state for the computer
+computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
+    display_game([Matrix, CurrentPlayer]), % Display the current game state for the computer
     display_last_move, % Display the last move
     nl,
 
@@ -243,10 +243,11 @@ computer_make_move(Matrix, UpdatedMatrix, NextPlayer) :-
 
     % Choose a random move for the computer
     random_member([Row, Column], AvailableMoves),
-    update_matrix(Matrix, Row, Column, 'B', UpdatedMatrix),
+    current_player_symbol(CurrentPlayer, Symbol),
+    update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
 
     % Switch to the next player
-    switch_player(black, NextPlayer).
+    switch_player(CurrentPlayer, NextPlayer).
 
 random_initial_move(Row, Column) :-
     between(1, 7, Row),
@@ -266,7 +267,7 @@ computer_vs_player_game :-
 computer_vs_player_game_loop(Matrix, CurrentPlayer) :-
     (   CurrentPlayer = black 
     ->  (
-            computer_make_move(Matrix, UpdatedMatrix, NextPlayer) ->  
+            computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->  
             write('Computer''s Turn'),
             sleep(2),
             computer_vs_player_game_loop(UpdatedMatrix, NextPlayer)
@@ -414,14 +415,14 @@ computer_vs_computer_game :-
 computer_vs_computer_game_loop(Matrix, CurrentPlayer) :-
     (CurrentPlayer = black -> % 
         (
-            computer_make_move(Matrix, UpdatedMatrix, NextPlayer) ->
+            computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->
             write('Black Computer''s Turn'),
             sleep(2),
             computer_vs_computer_game_loop(UpdatedMatrix, NextPlayer)
         ;   game_over(Matrix, CurrentPlayer)
         )
     ;   (
-            computer_make_move(Matrix, UpdatedMatrix, NextPlayer) ->
+            computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->
             write('White Computer''s Turn'),
             sleep(2),
             computer_vs_computer_game_loop(UpdatedMatrix, NextPlayer)
