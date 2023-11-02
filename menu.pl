@@ -71,7 +71,23 @@ handle_play_game_option(2) :-
     write('           ------------          '), nl,
     nl,
     read_menu_option(DifficultyOption),
-    computer_vs_player_game(DifficultyOption),
+
+    nl,
+    write('|---------------------------------|'), nl,
+    write('|    Choose Who Starts First      |'), nl,
+    write('|---------------------------------|'), nl,
+    write('           ------------          '), nl,
+    write('       1. Player'), nl,
+    write('           ------------          '), nl,
+    write('      2. Computer'), nl,
+    write('           ------------          '), nl,
+    nl,
+    read_menu_option(StartOption),
+
+    (StartOption == 1 ->
+        player_vs_computer_game(DifficultyOption)
+    ;   computer_vs_player_game(DifficultyOption)
+    ),
     nl.
 
 % Option 3 in play_game_options

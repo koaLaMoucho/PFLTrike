@@ -82,11 +82,49 @@ computer_vs_player_game_loop(Matrix, CurrentPlayer, DifficultyOption) :-
              DifficultyOption == 2 -> computer_make_move2(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer)),
             write('Computer''s Turn'),
             sleep(2),
-            computer_vs_player_game_loop(UpdatedMatrix, NextPlayer, DifficultyOption)
+            computer_vs_player_game_loop(UpdatedMatrix, NextPlayer, DifficultyOption);
+            game_over(Matrix, CurrentPlayer), !
         )
     ;   (
             make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) ->
             computer_vs_player_game_loop(UpdatedMatrix, NextPlayer, DifficultyOption)
         ;   game_over(Matrix, CurrentPlayer), !
+    )
+    ).
+
+
+
+
+% Main game loop for player v computer
+player_vs_computer_game(DifficultyOption) :-
+    create_matrix(7, Matrix),
+    
+    % Prompt black player for initial move
+    write('Black, enter the row for your initial move: '),
+    read(BlackRow),
+    write('Enter the column for your initial move: '),
+    read(BlackColumn),
+    update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
+
+    % Start the game loop
+    player_vs_computer_game_loop(UpdatedMatrix, white,DifficultyOption).
+
+% Game loop for computer vs player
+player_vs_computer_game_loop(Matrix, CurrentPlayer, DifficultyOption) :-
+    (   CurrentPlayer = black 
+    ->  (
+         make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) ->
+            player_vs_computer_game_loop(UpdatedMatrix, NextPlayer, DifficultyOption)
+        ;   game_over(Matrix, CurrentPlayer), !
+            
+        )
+    ;   (
+           % Check the difficulty level and call the appropriate computer move predicate
+            (DifficultyOption == 1 -> computer_make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer);
+             DifficultyOption == 2 -> computer_make_move2(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer)),
+            write('Computer''s Turn'),
+            sleep(2),
+            player_vs_computer_game_loop(UpdatedMatrix, NextPlayer, DifficultyOption);
+            game_over(Matrix, CurrentPlayer), !
     )
     ).
