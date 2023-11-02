@@ -2,7 +2,6 @@
 :- use_module(library(random)).
 :- use_module(library(between)).
 :- use_module(library(system)).
-:- use_module(library(apply))
 
 is_empty_list([]). % to easily see if a list is empty
 
@@ -24,15 +23,16 @@ row_of_vars(N, [Var | Rest]) :-
     N > 0,
     NextN is N - 1,
     row_of_vars(NextN, Rest),
-    Var = 'X'. % You can use any variable here
+    Var = '0'. 
 
 % Update a value at a specific position in the matrix with move restrictions
 update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
     % Keep track of the last row and last column
     last_move(LastRow, LastCol),
 
-    % Add move restrictions here
-    valid_move(Row, Col, LastRow, LastCol, Matrix),
+     ((LastRow =\= 0, LastCol =\= 0) ->
+        valid_move(Row, Col, LastRow, LastCol, Matrix)
+    ; true),
 
     update_row(Matrix, Row, Col, NewValue, UpdatedMatrix),
 
@@ -111,12 +111,7 @@ display_row([Cell | Rest]) :-
     write(Cell),
     write('  '),
     display_row(Rest).
-/*
-% Example of the initial game state for Trike with a 7x7 board.
-initial_state(Size, [Board, CurrentPlayer]) :-
-    create_matrix(Size, Board),
-    CurrentPlayer = white.
-*/
+
 % Display the last move
 display_last_move :-
     last_move(LastRow, LastCol),
@@ -143,7 +138,7 @@ available_moves(Matrix, AvailableMoves) :-
 
 % Define the initial last move
 :- dynamic last_move/2.
-last_move(7, 1).
+last_move(0,0).
 
 % Check if the move from LastRow/LastCol to Row/Col is valid on the Matrix
 valid_move(Row, Col, LastRow, LastCol, Matrix) :-
@@ -164,7 +159,7 @@ within_board(Row, Col, Matrix) :-
 occupied(Row, Col, Matrix) :-
     nth1(Row, Matrix, RowList),
     nth1(Col, RowList, Cell),
-    Cell \= 'X'. % assuming 'X' is the representation of an unoccupied cell
+    Cell \= '0'. 
 
 % Check if a move is in a straight line (this predicate should be implemented based on the games geometry).
 is_straight_line(Row, _LastCol, Row, _Col). % Vertical movement
@@ -231,49 +226,16 @@ computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     switch_player(CurrentPlayer, NextPlayer).
 
 random_initial_move(Row, Column) :-
-    between(1, 7, Row),
-    between(1, Row, Column).
-
-% Main game loop for computer vs player
-computer_vs_player_game :-
-    create_matrix(7, Matrix),
+    random(1, 7, Row),
     
-    random_initial_move(Row, Column),
-    update_matrix(Matrix, Row, Column, 'B', UpdatedMatrix),
+   random(1, Row, Column),
+   write('Random Initial Move: Row '), write(Row), write(', Column '), write(Column), nl.
+  
 
-    % Start the game loop
-    computer_vs_player_game_loop(UpdatedMatrix, white).
 
-% Game loop for computer vs player
-computer_vs_player_game_loop(Matrix, CurrentPlayer) :-
-    (   CurrentPlayer = black 
-    ->  (
-            computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->  
-            write('Computer''s Turn'),
-            sleep(2),
-            computer_vs_player_game_loop(UpdatedMatrix, NextPlayer)
-        ;   game_over(Matrix, CurrentPlayer), !
-        )
-    ;   (
-            make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) ->
-            computer_vs_player_game_loop(UpdatedMatrix, NextPlayer)
-        ;   game_over(Matrix, CurrentPlayer), !
-        )
-    ).
+
     
-% Main game loop for player vs player
-player_vs_player_game :-
-    create_matrix(7, Matrix),
-    
-    % Prompt black player for initial move
-    write('Black, enter the row for your initial move: '),
-    read(BlackRow),
-    write('Enter the column for your initial move: '),
-    read(BlackColumn),
-    update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
 
-    % Start the game loop
-    player_vs_player_game_loop(UpdatedMatrix, white).
 
 make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     display_game([Matrix, CurrentPlayer]), % Display the current game state
@@ -295,11 +257,7 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
 
     switch_player(CurrentPlayer, NextPlayer).
 
-player_vs_player_game_loop(Matrix, CurrentPlayer) :-
-    (   make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) ->
-        player_vs_player_game_loop(UpdatedMatrix, NextPlayer)  % If make_move succeeds, recurse with updated state.
-    ;   game_over(Matrix, CurrentPlayer), !  % If make_move fails, end the game.
-    ).
+
 
 % Define the predicate to call when the game is over.
 game_over(Matrix, Player) :-
@@ -311,9 +269,15 @@ game_over(Matrix, Player) :-
     % Do something with the scores, like print them.
     format('Game over. ~nBlack score: ~w ~nWhite score: ~w~n', [ScoreBlack, ScoreWhite]),
     % Determine the winner.
-    (ScoreBlack > ScoreWhite -> format('Black wins!~n', []);
-    ScoreWhite > ScoreBlack -> format('White wins!~n', []);
-    format('It is a tie!~n', [])).
+    (ScoreBlack > ScoreWhite -> 
+        format('Black wins!~n', [])
+    ; ScoreWhite > ScoreBlack ->
+        format('White wins!~n', [])
+    ),
+    sleep(3),
+    nl, nl,
+    main_menu.
+
 
 % Define the score predicate.
 % score(Matrix, PlayerColor, Pos, Score)
@@ -354,34 +318,10 @@ valid_checker(Matrix, Row-Col, Color) :-
     Value == 'W',
     Color == white.
 
-% Main game loop for computer vs computer
-computer_vs_computer_game :-
-    create_matrix(7, Matrix),
-    
-    random_initial_move(Row, Column),
-    update_matrix(Matrix, Row, Column, 'B', UpdatedMatrix),
 
-    % Start the game loop
-    computer_vs_computer_game_loop(UpdatedMatrix, white).
 
-% Game loop for computer vs computer
-computer_vs_computer_game_loop(Matrix, CurrentPlayer) :-
-    (CurrentPlayer = black -> % 
-        (
-            computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->
-            write('Black Computer''s Turn'),
-            sleep(2),
-            computer_vs_computer_game_loop(UpdatedMatrix, NextPlayer)
-        ;   game_over(Matrix, CurrentPlayer), !
-        )
-    ;   (
-            computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) ->
-            write('White Computer''s Turn'),
-            sleep(2),
-            computer_vs_computer_game_loop(UpdatedMatrix, NextPlayer)
-        ;   game_over(Matrix, CurrentPlayer), !
-        )
-    ).
+
+
 
 
 computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
@@ -394,55 +334,60 @@ computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     format('Available Moves: ~w~n', [AvailableMoves]),
 
     % Choose a greedy move for the computer
-    write('before greedy_move'), nl,
+   /* write('before greedy_move'), nl,*/
     greedy_move(Matrix, CurrentPlayer, AvailableMoves, [Row, Column]),    
-    write('after greedy_move'), nl,
+   /* write('after greedy_move'), nl,*/
     current_player_symbol(CurrentPlayer, Symbol),
     update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
-
+    sleep(2),
     % Switch to the next player
     switch_player(CurrentPlayer, NextPlayer).
+
+
+
+
+
+
 
 
 % Greedy move for a computer player
 % It selects the move that captures the most pieces (or achieves the best immediate outcome based on a heuristic)
 
 greedy_move(Matrix, CurrentPlayer, AvailableMoves, BestMove) :-
-    write('before greedy_move_helper1'), nl,
+   /* write('before greedy_move_helper1'), nl,*/
     maplist(greedy_move_helper(Matrix, CurrentPlayer), AvailableMoves, MoveScores),
-    write(AvailableMoves), nl,
+  /*  write(AvailableMoves), nl,
     write(MoveScores), nl,
-    write('after greedy_move_helper1'), nl,
+    write('after greedy_move_helper1'), nl,*/
     maplist(extract_score, MoveScores, ScoresList),
     max_list(ScoresList, MaxScore),
-    write('max score: '), write(MaxScore), nl,
+ /*   write('max score: '), write(MaxScore), nl,
     write('after max_list'), nl,
-    write('before findall'), nl,
+    write('before findall'), nl,*/
     findall(Move, (member(Score-Move, MoveScores), Score == MaxScore), BestMoves),
-    
-    write('after findall'), nl,
-    write('best moves:' ), write(BestMoves), nl,
-    write('before random_member'), nl,
+    /* write('after findall'), nl,
+   write('best moves:' ), write(BestMoves), nl,
+    write('before random_member'), nl,*/
     maplist(pair_to_list, BestMoves, BestMoves1),
-    write('BestMoves1: '), write(BestMoves1), nl,
-    random_member(BestMove, BestMoves1),
-    write('BestMove: '), write(BestMove), nl.
+    /*write('BestMoves1: '), write(BestMoves1), nl,*/
+    random_member(BestMove, BestMoves1).
+  /*  write('BestMove: '), write(BestMove), nl.*/
     
 % Greedy move helper predicate
 greedy_move_helper(Matrix, CurrentPlayer, [Row, Column], Score-Move) :-
     Move = Row-Column,
     current_player_symbol(CurrentPlayer, Symbol),
-    write('before update_matrix2'), nl,
+  /*  write('before update_matrix2'), nl,*/
     update_matrix2(Matrix, Row, Column, Symbol, UpdatedMatrix),
-    write('after update_matrix2'), nl,
+   /* write('after update_matrix2'), nl,*/
     % Calculate scores for both players.
     score(UpdatedMatrix, black, Row-Column, ScoreBlack),
     score(UpdatedMatrix, white, Row-Column, ScoreWhite),
-    (CurrentPlayer == black -> Score is ScoreBlack - ScoreWhite; Score is ScoreWhite - ScoreBlack),
-    % score(UpdatedMatrix, CurrentPlayer, Row-Column, Score),
-    write('after score'), nl,
+    (CurrentPlayer == black -> Score is ScoreBlack - ScoreWhite; Score is ScoreWhite - ScoreBlack).
+    /* score(UpdatedMatrix, CurrentPlayer, Row-Column, Score).*/
+ /*   write('after score'), nl,
     write('Score: '), write(Score), nl,
-    write('after write'), nl.
+    write('after write'), nl.*/
 
 % Second predicate to update matrix
 update_matrix2(Matrix, Row, Col, NewValue, UpdatedMatrix) :-

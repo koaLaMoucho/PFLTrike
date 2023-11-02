@@ -26,9 +26,8 @@ main_menu :-
 
 
 read_menu_option(Option) :-
-    write('Enter your choice (1-2): '),
+    write('Enter your choice (Example: 1.): '),
     read(Option).
-
 
 handle_menu_option(1) :-
     play_game_options.
@@ -60,10 +59,45 @@ handle_play_game_option(1) :-
     nl.
 
 handle_play_game_option(2) :-
-    % Person vs Person
-    computer_vs_player_game, % Call the example_update predicate
+    % Person vs Computer
+    nl,
+    write('|---------------------------------|'), nl,
+    write('|       Choose Computer Level     |'), nl,
+    write('|---------------------------------|'), nl,
+    write('           ------------          '), nl,
+    write('       1. Easy (Random)'), nl,
+    write('           ------------          '), nl,
+    write('      2. Hard (Greedy)'), nl,
+    write('           ------------          '), nl,
+    nl,
+    read_menu_option(DifficultyOption),
+    computer_vs_player_game(DifficultyOption),
     nl.
+
+% Option 3 in play_game_options
 handle_play_game_option(3) :-
-     % Person vs Person
-    computer_vs_computer_game, % Call the example_update predicate
+    nl,
+    write('|---------------------------------|'), nl,
+    write('|   Choose Computer Levels (1-2)  |'), nl,
+    write('|---------------------------------|'), nl,
+    write('           ------------          '), nl,
+    write('   1. White Computer (Random)'), nl,
+    write('           ------------          '), nl,
+    write('   2. White Computer (Greedy)'), nl,
+    write('           ------------          '), nl,
+    nl,
+    read_menu_option(DifficultyOption1),
+    nl,
+    write('|---------------------------------|'), nl,
+    write('|   Choose Computer Levels (1-2)  |'), nl,
+    write('|---------------------------------|'), nl,
+    write('           ------------          '), nl,
+    write('   1. Black Computer (Random)'), nl,
+    write('           ------------          '), nl,
+    write('   2. Black Computer (Greedy)'), nl,
+    write('           ------------          '), nl,
+    nl,
+    read_menu_option(DifficultyOption2),
+    computer_vs_computer_game(DifficultyOption1, DifficultyOption2),
+    
     nl.
