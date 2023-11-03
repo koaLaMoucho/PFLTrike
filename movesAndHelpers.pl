@@ -241,40 +241,31 @@ computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
 % It selects the move that captures the most pieces (or achieves the best immediate outcome based on a heuristic)
 
 greedy_move(Matrix, CurrentPlayer, AvailableMoves, BestMove) :-
-   /* write('before greedy_move_helper1'), nl,*/
+   
     maplist(greedy_move_helper(Matrix, CurrentPlayer), AvailableMoves, MoveScores),
-  /*  write(AvailableMoves), nl,
-    write(MoveScores), nl,
-    write('after greedy_move_helper1'), nl,*/
+  
     maplist(extract_score, MoveScores, ScoresList),
     max_list(ScoresList, MaxScore),
- /*   write('max score: '), write(MaxScore), nl,
-    write('after max_list'), nl,
-    write('before findall'), nl,*/
+
     findall(Move, (member(Score-Move, MoveScores), Score == MaxScore), BestMoves),
-    /* write('after findall'), nl,
-   write('best moves:' ), write(BestMoves), nl,
-    write('before random_member'), nl,*/
+   
     maplist(pair_to_list, BestMoves, BestMoves1),
-    /*write('BestMoves1: '), write(BestMoves1), nl,*/
+
     random_member(BestMove, BestMoves1).
-  /*  write('BestMove: '), write(BestMove), nl.*/
+  
     
 % Greedy move helper predicate
 greedy_move_helper(Matrix, CurrentPlayer, [Row, Column], Score-Move) :-
     Move = Row-Column,
     current_player_symbol(CurrentPlayer, Symbol),
-  /*  write('before update_matrix2'), nl,*/
+ 
     update_matrix2(Matrix, Row, Column, Symbol, UpdatedMatrix),
-   /* write('after update_matrix2'), nl,*/
+
     % Calculate scores for both players.
     score(UpdatedMatrix, black, Row-Column, ScoreBlack),
     score(UpdatedMatrix, white, Row-Column, ScoreWhite),
     (CurrentPlayer == black -> Score is ScoreBlack - ScoreWhite; Score is ScoreWhite - ScoreBlack).
-    /* score(UpdatedMatrix, CurrentPlayer, Row-Column, Score).*/
- /*   write('after score'), nl,
-    write('Score: '), write(Score), nl,
-    write('after write'), nl.*/
+   
 
 % Second predicate to update matrix
 update_matrix2(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
