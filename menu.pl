@@ -19,7 +19,7 @@ cool_menu_art :-
     write('                         \\/    \\/ '), nl,
     nl.
 
-main_menu :-
+play :-
     cool_menu_art,
     nl,
     write('|---------------------------------|'), nl,
@@ -44,7 +44,7 @@ handle_menu_option(1) :-
     play_game_options.
 handle_menu_option(2) :-
     nl,
-    write('Goodbye!'), nl.
+    write('Goodbye, Thank you for playing!'), nl.
 
 % Options after choosing to play the game
 play_game_options :-
@@ -88,9 +88,9 @@ handle_play_game_option(2) :-
     write('|    Choose Who Starts First      |'), nl,
     write('|---------------------------------|'), nl,
     write('           ------------          '), nl,
-    write('       1. Player'), nl,
+    write('            1. Player'), nl,
     write('           ------------          '), nl,
-    write('      2. Computer'), nl,
+    write('           2. Computer'), nl,
     write('           ------------          '), nl,
     nl,
     read_menu_option(StartOption),
