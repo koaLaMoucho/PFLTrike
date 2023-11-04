@@ -1,7 +1,4 @@
-:- use_module(library(lists)).
-:- use_module(library(random)).
-:- use_module(library(between)).
-:- use_module(library(system)).
+
 
 
 % Generate a list of integers between L and H
@@ -136,8 +133,10 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
 
     write('Enter the row to update: '),
     read(Row),
+    skip_line,
     write('Enter the column to update: '),
     read(Column),
+    skip_line,
 
     current_player_symbol(CurrentPlayer, Symbol),
     update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
@@ -163,6 +162,8 @@ game_over(Matrix, Player) :-
     ),
     sleep(3),
     nl, nl,
+     retractall(last_move(_, _)),
+    asserta(last_move(0, 0)),
     main_menu.
 
 
@@ -221,9 +222,9 @@ computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     format('Available Moves: ~w~n', [AvailableMoves]),
 
     % Choose a greedy move for the computer
-   /* write('before greedy_move'), nl,*/
+  
     greedy_move(Matrix, CurrentPlayer, AvailableMoves, [Row, Column]),    
-   /* write('after greedy_move'), nl,*/
+
     current_player_symbol(CurrentPlayer, Symbol),
     update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
     sleep(2),

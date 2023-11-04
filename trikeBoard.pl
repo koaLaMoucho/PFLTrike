@@ -1,7 +1,4 @@
-:- use_module(library(lists)).
-:- use_module(library(random)).
-:- use_module(library(between)).
-:- use_module(library(system)).
+
 
 is_empty_list([]). % to easily see if a list is empty
 

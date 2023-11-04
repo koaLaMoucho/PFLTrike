@@ -1,5 +1,15 @@
 % Main menu
 
+:- use_module(library(lists)).
+:- use_module(library(random)).
+:- use_module(library(between)).
+:- use_module(library(system)).
+
+:- consult(gameLoops).
+:- consult(movesAndHelpers).
+:- consult(trikeBoard).
+
+
 cool_menu_art :-
     write('___________      .__ __         '), nl,
     write('\\__    ___/______|__|  | __ ____ '), nl,
@@ -27,7 +37,8 @@ main_menu :-
 
 read_menu_option(Option) :-
     write('Enter your choice (Example: 1.): '),
-    read(Option).
+    read(Option),
+    skip_line.
 
 handle_menu_option(1) :-
     play_game_options.

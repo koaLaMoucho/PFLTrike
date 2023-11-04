@@ -1,7 +1,4 @@
-:- use_module(library(lists)).
-:- use_module(library(random)).
-:- use_module(library(between)).
-:- use_module(library(system)).
+
 
 % Main game loop for computer vs computer
 computer_vs_computer_game(DifficultyOption1,DifficultyOption2) :-
@@ -50,8 +47,10 @@ player_vs_player_game :-
     % Prompt black player for initial move
     write('Black, enter the row for your initial move: '),
     read(BlackRow),
+    skip_line,
     write('Enter the column for your initial move: '),
     read(BlackColumn),
+    skip_line,
     update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
 
     % Start the game loop
@@ -102,8 +101,10 @@ player_vs_computer_game(DifficultyOption) :-
     % Prompt black player for initial move
     write('Black, enter the row for your initial move: '),
     read(BlackRow),
+    skip_line,
     write('Enter the column for your initial move: '),
     read(BlackColumn),
+    skip_line,
     update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
 
     % Start the game loop
