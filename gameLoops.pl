@@ -44,17 +44,39 @@ computer_vs_computer_game_loop(Matrix, CurrentPlayer, DifficultyOption1, Difficu
 player_vs_player_game :-
     create_matrix(7, Matrix),
     
-    % Prompt black player for initial move
-    write('Black, enter the row for your initial move: '),
-    read(BlackRow),
+    % Prompt first player for color
+    write('First player, do you want to be white or black? (white/black): '),
+    read(FirstPlayerColor),
+    skip_line,
+    (   FirstPlayerColor = white ->  % If first player is white, second player is black
+        SecondPlayerColor = black
+    ;   SecondPlayerColor = white  % If first player is black, second player is white
+    ),
+
+    % Prompt first player for initial move
+    write('First player, enter the row for your initial move: '),
+    read(Row),
     skip_line,
     write('Enter the column for your initial move: '),
-    read(BlackColumn),
+    read(Column),
     skip_line,
-    update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
+
+    % Prompt second player for initial move
+    write('Second Player, do you want to switch sides? (y/n): '),
+    read(SwitchSides),
+    skip_line,
+    write('SwitchSides: '), write(SwitchSides), nl,
 
     % Start the game loop
-    player_vs_player_game_loop(UpdatedMatrix, white).
+    (   SwitchSides = y ->  % If second player wants to switch sides, switch the colors
+        current_player_symbol(SecondPlayerColor, Symbol),
+        update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
+        player_vs_player_game_loop(UpdatedMatrix, FirstPlayerColor)
+    ;   current_player_symbol(FirstPlayerColor, Symbol),
+        update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
+        player_vs_player_game_loop(UpdatedMatrix, SecondPlayerColor)
+    ).
+    
 
 % Game loop for player vs player based on CurrentPlayer
 player_vs_player_game_loop(Matrix, CurrentPlayer) :-
