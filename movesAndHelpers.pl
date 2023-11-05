@@ -128,17 +128,6 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     available_moves(Matrix, AvailableMoves),
     \+ is_empty_list(AvailableMoves),
 
-    /*
-    format('Available Moves: ~w~n', [AvailableMoves]),
-
-    write('Enter the row to update: '),
-    read(Row),
-    skip_line,
-    write('Enter the column to update: '),
-    read(Column),
-    skip_line,
-    */
-
     ask_move(Row, Column, AvailableMoves),
 
     current_player_symbol(CurrentPlayer, Symbol),
