@@ -111,12 +111,6 @@ computer_vs_player_game(DifficultyOption) :-
         computer_vs_player_game_loop(UpdatedMatrix, SecondPlayerColor, DifficultyOption)
     ).
 
-    /*
-    update_matrix(Matrix, Row, Column, 'B', UpdatedMatrix),
-
-    % Start the game loop
-    computer_vs_player_game_loop(UpdatedMatrix, white,DifficultyOption).
-    */
 
 % Game loop for computer vs player based on CurrentPlayer
 computer_vs_player_game_loop(Matrix, CurrentPlayer, DifficultyOption) :-
