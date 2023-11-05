@@ -45,27 +45,17 @@ player_vs_player_game :-
     create_matrix(7, Matrix),
     
     % Prompt first player for color
-    write('First player, do you want to be white or black? (white/black): '),
-    read(FirstPlayerColor),
-    skip_line,
+    read_player_color(FirstPlayerColor),
     (   FirstPlayerColor = white ->  % If first player is white, second player is black
         SecondPlayerColor = black
     ;   SecondPlayerColor = white  % If first player is black, second player is white
     ),
 
     % Prompt first player for initial move
-    write('First player, enter the row for your initial move: '),
-    read(Row),
-    skip_line,
-    write('Enter the column for your initial move: '),
-    read(Column),
-    skip_line,
+    read_move(Row, Column, Matrix),
 
     % Prompt second player for initial move
-    write('Second Player, do you want to switch sides? (y/n): '),
-    read(SwitchSides),
-    skip_line,
-    write('SwitchSides: '), write(SwitchSides), nl,
+    read_switch_sides(SwitchSides),
 
     % Start the game loop
     (   SwitchSides = y ->  % If second player wants to switch sides, switch the colors
@@ -76,7 +66,55 @@ player_vs_player_game :-
         update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
         player_vs_player_game_loop(UpdatedMatrix, SecondPlayerColor)
     ).
-    
+
+% Prompt the first player for color
+read_player_color(PlayerColor) :-
+    write('First player, do you want to be white or black? (white/black): '),
+    read(NewPlayerColor),
+    skip_line,
+    (   NewPlayerColor = white
+    ;   NewPlayerColor = black
+    ),
+    !,
+    PlayerColor = NewPlayerColor.
+
+read_player_color(PlayerColor) :-
+    nl,
+    write('Invalid color. Please enter white or black.'), nl,
+    read_player_color(PlayerColor).
+
+% Prompt the player for a move
+read_move(Row, Column, Matrix) :-
+    write('Enter the row for your move: '),
+    read(NewRow),
+    skip_line,
+    write('Enter the column for your move: '),
+    read(NewColumn),
+    within_board(NewRow, NewColumn, Matrix),
+    !,
+    Row = NewRow,
+    Column = NewColumn.
+
+read_move(Row, Column, Matrix) :-
+    nl,
+    write('Invalid move. Please try again.'), nl,
+    read_move(Row, Column, Matrix).
+
+% Check if second player wants to switch sides
+read_switch_sides(SwitchSides) :-
+    write('Second Player, do you want to switch sides? (y/n): '),
+    read(NewSwitchSides),
+    skip_line,
+    (   NewSwitchSides = y
+    ;   NewSwitchSides = n
+    ),
+    !,
+    SwitchSides = NewSwitchSides.
+
+read_switch_sides(SwitchSides) :-
+    nl,
+    write('Invalid option. Please enter y or n.'), nl,
+    read_switch_sides(SwitchSides).
 
 % Game loop for player vs player based on CurrentPlayer
 player_vs_player_game_loop(Matrix, CurrentPlayer) :-
@@ -96,10 +134,7 @@ computer_vs_player_game(DifficultyOption) :-
     SecondPlayerColor = white,
 
     % Prompt second player for initial move
-    write('Second Player, do you want to switch sides? (y/n): '),
-    read(SwitchSides),
-    skip_line,
-    write('SwitchSides: '), write(SwitchSides), nl,
+    read_switch_sides(SwitchSides),
 
     % Start the game loop
     (   SwitchSides = y ->  % If second player wants to switch sides, switch the colors
@@ -139,16 +174,12 @@ player_vs_computer_game(DifficultyOption) :-
     create_matrix(7, Matrix),
     
     % Prompt black player for initial move
-    write('Black, enter the row for your initial move: '),
-    read(BlackRow),
-    skip_line,
-    write('Enter the column for your initial move: '),
-    read(BlackColumn),
-    skip_line,
+    read_move(BlackRow, BlackColumn, Matrix),
+
     update_matrix(Matrix, BlackRow, BlackColumn, 'B', UpdatedMatrix),
 
     % Start the game loop
-    player_vs_computer_game_loop(UpdatedMatrix, white,DifficultyOption).
+    player_vs_computer_game_loop(UpdatedMatrix, white, DifficultyOption).
 
 
 

@@ -37,9 +37,19 @@ play :-
 
 % Read user input
 read_menu_option(Option) :-
-    write('Enter your choice (Example: 1.): '),
-    read(Option),
-    skip_line.
+    write('Enter your choice: '),
+    read(NewOption),
+    skip_line,
+    (   NewOption = 1
+    ;   NewOption = 2
+    ),
+    !, % Prevent backtracking once a valid option has been read
+    Option = NewOption.
+
+read_menu_option(Option) :-
+    nl,
+    write('Invalid option, please try again.'), nl,
+    read_menu_option(Option).
 
 handle_menu_option(1) :-
     play_game_options.
@@ -61,8 +71,25 @@ play_game_options :-
     write('     3. Computer vs Computer'), nl,
     write('           ------------          '), nl,
     nl,
-    read_menu_option(GameOption),
+    read_gamemode_menu_option(GameOption),
     handle_play_game_option(GameOption).
+
+% Read user input
+read_gamemode_menu_option(Option) :-
+    write('Enter your choice: '),
+    read(NewOption),
+    skip_line,
+    (   NewOption = 1
+    ;   NewOption = 2
+    ;   NewOption = 3
+    ),
+    !, % Cut to prevent backtracking after a valid choice
+    Option = NewOption.
+
+read_gamemode_menu_option(Option) :-
+    nl,
+    write('Invalid option, please try again.'), nl,
+    read_gamemode_menu_option(Option).
 
 % Handle options after choosing to play the game
 handle_play_game_option(1) :-

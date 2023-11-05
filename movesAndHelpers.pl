@@ -124,7 +124,6 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     display_last_move, 
     nl,
 
-    
     available_moves(Matrix, AvailableMoves),
     \+ is_empty_list(AvailableMoves),
 
@@ -238,8 +237,6 @@ computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
 
 
 % Greedy move for a computer player
-
-
 greedy_move(Matrix, CurrentPlayer, AvailableMoves, BestMove) :-
    
     maplist(greedy_move_helper(Matrix, CurrentPlayer), AvailableMoves, MoveScores),
