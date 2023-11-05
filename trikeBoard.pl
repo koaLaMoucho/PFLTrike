@@ -104,12 +104,13 @@ display_column_numbers(CurrentCol, MaxCol) :-
     NextCol is CurrentCol + 1,
     display_column_numbers(NextCol, MaxCol).
 
+% Display board row numbers
 display_row_number(RowNum) :-
     nl,
     write(RowNum),
      write(' |').
 
-% Display board row numbers
+% Display board rows
 display_row([]).
 display_row([Cell | Rest]) :-
     write(' '),
