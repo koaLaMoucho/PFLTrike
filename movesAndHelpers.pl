@@ -127,6 +127,8 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     
     available_moves(Matrix, AvailableMoves),
     \+ is_empty_list(AvailableMoves),
+
+    /*
     format('Available Moves: ~w~n', [AvailableMoves]),
 
     write('Enter the row to update: '),
@@ -135,13 +137,33 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
     write('Enter the column to update: '),
     read(Column),
     skip_line,
+    */
+
+    ask_move(Row, Column, AvailableMoves),
 
     current_player_symbol(CurrentPlayer, Symbol),
     update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
 
     switch_player(CurrentPlayer, NextPlayer).
 
+% Ask the user for a valid move until is given one
+ask_move(Row, Column, AvailableMoves) :-
+    format('Available Moves: ~w~n', [AvailableMoves]),
 
+    write('Enter the row to update: '),
+    read(NewRow),
+    skip_line,
+    write('Enter the column to update: '),
+    read(NewColumn),
+    skip_line,
+
+    member([NewRow, NewColumn], AvailableMoves),
+    Row = NewRow,
+    Column = NewColumn,
+    !.
+
+ask_move(Row, Column, AvailableMoves) :-
+    ask_move(Row, Column, AvailableMoves).
 
 % Predicate to call when the game is over
 game_over(Matrix, Player) :-
