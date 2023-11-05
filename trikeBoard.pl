@@ -1,8 +1,7 @@
+% Check if a list is empty
+is_empty_list([]). 
 
-
-is_empty_list([]). % to easily see if a list is empty
-
-% Updated create_matrix/2 to create a matrix with variables
+% Create a matrix of variables
 create_matrix(Size, Matrix) :-
     create_matrix(Size, 1, Matrix).
 
@@ -37,9 +36,12 @@ update_matrix(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
     retractall(last_move(_, _)),
     asserta(last_move(Row, Col)).
 
+% Get the symbol for the current player
 current_player_symbol(white, 'W').
 current_player_symbol(black, 'B').
 
+
+% Update a row in the matrix
 update_row([CurrentRow | Rest], 1, Col, NewValue, [UpdatedRow | Rest]) :-
     update_column(CurrentRow, Col, NewValue, UpdatedRow).
 update_row([CurrentRow | Rest], Row, Col, NewValue, [CurrentRow | UpdatedRest]) :-
@@ -47,13 +49,14 @@ update_row([CurrentRow | Rest], Row, Col, NewValue, [CurrentRow | UpdatedRest]) 
     NextRow is Row - 1,
     update_row(Rest, NextRow, Col, NewValue, UpdatedRest).
 
+% Update a column in a row
 update_column([_ | Rest], 1, NewValue, [NewValue | Rest]).
 update_column([Current | Rest], Col, NewValue, [Current | UpdatedRest]) :-
     Col > 1,
     NextCol is Col - 1,
     update_column(Rest, NextCol, NewValue, UpdatedRest).
 
-% Example of a simple display function.
+% Display the game state
 display_game([Board, CurrentPlayer]) :-
     nl,
     display_matrix(Board),
@@ -61,6 +64,8 @@ display_game([Board, CurrentPlayer]) :-
     write('Current Player: '), write(CurrentPlayer),
     nl.
 
+
+% Display the board matrix
 display_matrix(Matrix) :-
     length(Matrix, BoardSize),
     display_matrix(Matrix, 1, BoardSize),
@@ -80,6 +85,7 @@ display_matrix([Row | Rest], RowNum, BoardSize) :-
     NextRowNum is RowNum + 1,
     display_matrix(Rest, NextRowNum,BoardSize).
 
+% Display spaces to make board look the correct shape
 display_spaces(0).
 display_spaces(N) :-
     N > 0,
@@ -87,6 +93,7 @@ display_spaces(N) :-
     NextN is N - 1,
     display_spaces(NextN).
 
+% Display board column numbers
 display_column_numbers(CurrentCol, MaxCol) :-
     CurrentCol > MaxCol,
     !.
@@ -102,6 +109,7 @@ display_row_number(RowNum) :-
     write(RowNum),
      write(' |').
 
+% Display board row numbers
 display_row([]).
 display_row([Cell | Rest]) :-
     write(' '),

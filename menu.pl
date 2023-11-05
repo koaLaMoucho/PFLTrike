@@ -19,6 +19,7 @@ cool_menu_art :-
     write('                         \\/    \\/ '), nl,
     nl.
 
+% Main Menu
 play :-
     cool_menu_art,
     nl,
@@ -34,7 +35,7 @@ play :-
     read_menu_option(Option),
     handle_menu_option(Option).
 
-
+% Read user input
 read_menu_option(Option) :-
     write('Enter your choice (Example: 1.): '),
     read(Option),
@@ -101,7 +102,7 @@ handle_play_game_option(2) :-
     ),
     nl.
 
-% Option 3 in play_game_options
+
 handle_play_game_option(3) :-
     nl,
     write('|---------------------------------|'), nl,

@@ -8,6 +8,7 @@ generate_range(L, H, [L | Rest]) :-
     generate_range(NextL, H, Rest).
 generate_range(H, H, [H]).
 
+% List of available moves based on the last row, the matrix and the valid moves
 available_moves(Matrix, AvailableMoves) :-
     last_move(LastRow, LastCol),
     length(Matrix, Size),
@@ -45,7 +46,7 @@ occupied(Row, Col, Matrix) :-
     nth1(Col, RowList, Cell),
     Cell \= '0'. 
 
-% Check if a move is in a straight line (this predicate should be implemented based on the games geometry).
+% Check if a move is in a straight line 
 is_straight_line(Row, _LastCol, Row, _Col). % Vertical movement
 is_straight_line(_LastRow, Col, _Row, Col). % Horizontal movement
 is_straight_line(LastRow, LastCol, Row, Col) :- % Diagonal movement
@@ -91,24 +92,25 @@ get_value(Matrix, Row, Col, Value) :-
 switch_player(white, black).
 switch_player(black, white).
 
-
+% Sequence of steps when a random computer is making a move
 computer_make_move(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
-    display_game([Matrix, CurrentPlayer]), % Display the current game state for the computer
-    display_last_move, % Display the last move
+    display_game([Matrix, CurrentPlayer]), 
+    display_last_move, 
     nl,
-    % Generate and display a list of available moves
+    
     available_moves(Matrix, AvailableMoves),
     \+ is_empty_list(AvailableMoves),
     format('Available Moves: ~w~n', [AvailableMoves]),
 
-    % Choose a random move for the computer
+   
     random_member([Row, Column], AvailableMoves),
     current_player_symbol(CurrentPlayer, Symbol),
     update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
 
-    % Switch to the next player
+  
     switch_player(CurrentPlayer, NextPlayer).
 
+% Initial move when a computer is starting the game
 random_initial_move(Row, Column) :-
     random(1, 7, Row),
     
@@ -116,17 +118,13 @@ random_initial_move(Row, Column) :-
    write('Random Initial Move: Row '), write(Row), write(', Column '), write(Column), nl.
   
 
-
-
-    
-
-
+% Sequence of steps when a player is making a move
 make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
-    display_game([Matrix, CurrentPlayer]), % Display the current game state
-    display_last_move, % Display the last move
+    display_game([Matrix, CurrentPlayer]), 
+    display_last_move, 
     nl,
 
-    % Generate and display a list of available moves
+    
     available_moves(Matrix, AvailableMoves),
     \+ is_empty_list(AvailableMoves),
     format('Available Moves: ~w~n', [AvailableMoves]),
@@ -145,16 +143,16 @@ make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) :-
 
 
 
-% Define the predicate to call when the game is over.
+% Predicate to call when the game is over
 game_over(Matrix, Player) :-
     last_move(Row, Column),
-    % Calculate scores for both players.
+    
     score(Matrix, black, Row-Column, ScoreBlack),
     score(Matrix, white, Row-Column, ScoreWhite),
 
-    % Do something with the scores, like print them.
+   
     format('Game over. ~nBlack score: ~w ~nWhite score: ~w~n', [ScoreBlack, ScoreWhite]),
-    % Determine the winner.
+  
     (ScoreBlack > ScoreWhite -> 
         format('Black wins!~n', [])
     ; ScoreWhite > ScoreBlack ->
@@ -164,17 +162,17 @@ game_over(Matrix, Player) :-
     nl, nl,
      retractall(last_move(_, _)),
     asserta(last_move(0, 0)),
-    main_menu.
+    play.
 
 
-% Define the score predicate.
+% Calculate the final score of a Player
 % score(Matrix, PlayerColor, Pos, Score)
 score(Matrix, Color, Pos, Score) :-
     findall(AdjPos, (adjacent(Pos, AdjPos), valid_checker(Matrix, AdjPos, Color)), AdjacentPositions), % Get all adjacent positions to Pos that contain Colors checker.
     length(AdjacentPositions, Score). % The score is the number of adjacent positions.
 
-% Predicate to find adjacent positions on the board.
-% adjacent(Position, AdjacentPosition)
+% Find adjacent positions on the board
+
 adjacent(Row-Col, AdjRow-AdjCol) :-
     adjacent_hex(Row, Col, AdjRow, AdjCol).
 
@@ -195,8 +193,8 @@ adjacent_hex(Row, Col, AdjRow, AdjCol) :-
 % Same position
 adjacent_hex(Row, Col, Row, Col).
 
-% Predicate to check if theres a valid checker at a position for the given color.
-% valid_checker(Matrix, Position, Color)
+% Check if theres a valid checker at a position for the given color
+
 valid_checker(Matrix, Row-Col, Color) :-
     get_value(Matrix, Row, Col, Value),
     Value == 'B',
@@ -207,39 +205,29 @@ valid_checker(Matrix, Row-Col, Color) :-
     Color == white.
 
 
-
-
-
-
-
+% Sequence of steps when a greedy computer is making a move
 computer_make_move2(Matrix,CurrentPlayer, UpdatedMatrix, NextPlayer) :-
-    display_game([Matrix, CurrentPlayer]), % Display the current game state for the computer
-    display_last_move, % Display the last move
+    display_game([Matrix, CurrentPlayer]), 
+    display_last_move, 
     nl,
-    % Generate and display a list of available moves
+   
     available_moves(Matrix, AvailableMoves),
     \+ is_empty_list(AvailableMoves),
     format('Available Moves: ~w~n', [AvailableMoves]),
 
-    % Choose a greedy move for the computer
+  
   
     greedy_move(Matrix, CurrentPlayer, AvailableMoves, [Row, Column]),    
 
     current_player_symbol(CurrentPlayer, Symbol),
     update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
     sleep(2),
-    % Switch to the next player
+  
     switch_player(CurrentPlayer, NextPlayer).
 
 
-
-
-
-
-
-
 % Greedy move for a computer player
-% It selects the move that captures the most pieces (or achieves the best immediate outcome based on a heuristic)
+
 
 greedy_move(Matrix, CurrentPlayer, AvailableMoves, BestMove) :-
    
@@ -268,13 +256,14 @@ greedy_move_helper(Matrix, CurrentPlayer, [Row, Column], Score-Move) :-
     (CurrentPlayer == black -> Score is ScoreBlack - ScoreWhite; Score is ScoreWhite - ScoreBlack).
    
 
-% Second predicate to update matrix
+% Second predicate to update board matrix for greedy computer
 update_matrix2(Matrix, Row, Col, NewValue, UpdatedMatrix) :-
-    % Add move restrictions here
+    
     valid_move(Row, Col, LastRow, LastCol, Matrix),
 
     update_row(Matrix, Row, Col, NewValue, UpdatedMatrix).
 
+% Find the maximum element in a list
 max_list([H|T], Max) :-
     max_list(T, H, Max).
 
@@ -286,6 +275,11 @@ max_list([H|T], TempMax, Max) :-
 max_list([_|T], TempMax, Max) :-
     max_list(T, TempMax, Max).
 
+% Convert a pair to a list
 pair_to_list(Row-Col, [Row, Col]).
+
+% Convert a list to a pair
 list_to_pair([Row, Col], Row-Col).
+
+% Extract the score from a move-score pair
 extract_score(Score-(Row-Column), Score).

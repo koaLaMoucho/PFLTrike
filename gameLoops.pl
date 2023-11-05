@@ -13,7 +13,7 @@ computer_vs_computer_game(DifficultyOption1,DifficultyOption2) :-
 
 
 
-% Main game loop for computer vs computer
+% Game loop for computer vs computer based on CurrentPlayer
 computer_vs_computer_game_loop(Matrix, CurrentPlayer, DifficultyOption1, DifficultyOption2) :-
     (
         CurrentPlayer = black 
@@ -40,7 +40,7 @@ computer_vs_computer_game_loop(Matrix, CurrentPlayer, DifficultyOption1, Difficu
     ).
 
 
-    % Main game loop for player vs player
+% Main game loop for player vs player
 player_vs_player_game :-
     create_matrix(7, Matrix),
     
@@ -56,6 +56,7 @@ player_vs_player_game :-
     % Start the game loop
     player_vs_player_game_loop(UpdatedMatrix, white).
 
+% Game loop for player vs player based on CurrentPlayer
 player_vs_player_game_loop(Matrix, CurrentPlayer) :-
     (   make_move(Matrix, CurrentPlayer, UpdatedMatrix, NextPlayer) ->
         player_vs_player_game_loop(UpdatedMatrix, NextPlayer)  % If make_move succeeds, recurse with updated state.
@@ -72,7 +73,7 @@ computer_vs_player_game(DifficultyOption) :-
     % Start the game loop
     computer_vs_player_game_loop(UpdatedMatrix, white,DifficultyOption).
 
-% Game loop for computer vs player
+% Game loop for computer vs player based on CurrentPlayer
 computer_vs_player_game_loop(Matrix, CurrentPlayer, DifficultyOption) :-
     (   CurrentPlayer = black 
     ->  (
@@ -110,7 +111,7 @@ player_vs_computer_game(DifficultyOption) :-
     % Start the game loop
     player_vs_computer_game_loop(UpdatedMatrix, white,DifficultyOption).
 
-% Game loop for computer vs player
+% Game loop for computer vs player based on CurrentPlayer
 player_vs_computer_game_loop(Matrix, CurrentPlayer, DifficultyOption) :-
     (   CurrentPlayer = black 
     ->  (
