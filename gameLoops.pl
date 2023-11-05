@@ -90,10 +90,33 @@ computer_vs_player_game(DifficultyOption) :-
     create_matrix(7, Matrix),
     
     random_initial_move(Row, Column),
+
+    % Computer is black and player is white
+    FirstPlayerColor = black,
+    SecondPlayerColor = white,
+
+    % Prompt second player for initial move
+    write('Second Player, do you want to switch sides? (y/n): '),
+    read(SwitchSides),
+    skip_line,
+    write('SwitchSides: '), write(SwitchSides), nl,
+
+    % Start the game loop
+    (   SwitchSides = y ->  % If second player wants to switch sides, switch the colors
+        current_player_symbol(SecondPlayerColor, Symbol),
+        update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
+        computer_vs_player_game_loop(UpdatedMatrix, FirstPlayerColor, DifficultyOption)
+    ;   current_player_symbol(FirstPlayerColor, Symbol),
+        update_matrix(Matrix, Row, Column, Symbol, UpdatedMatrix),
+        computer_vs_player_game_loop(UpdatedMatrix, SecondPlayerColor, DifficultyOption)
+    ).
+
+    /*
     update_matrix(Matrix, Row, Column, 'B', UpdatedMatrix),
 
     % Start the game loop
     computer_vs_player_game_loop(UpdatedMatrix, white,DifficultyOption).
+    */
 
 % Game loop for computer vs player based on CurrentPlayer
 computer_vs_player_game_loop(Matrix, CurrentPlayer, DifficultyOption) :-
@@ -132,6 +155,8 @@ player_vs_computer_game(DifficultyOption) :-
 
     % Start the game loop
     player_vs_computer_game_loop(UpdatedMatrix, white,DifficultyOption).
+
+
 
 % Game loop for computer vs player based on CurrentPlayer
 player_vs_computer_game_loop(Matrix, CurrentPlayer, DifficultyOption) :-
